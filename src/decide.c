@@ -10,17 +10,13 @@ last_enqueued_unassigned_variable(kissat *solver)
   const links *links = solver->links;
   const value *values = solver->values;
   unsigned res = solver->queue.search.idx;
-  /*
-  Try to look up how this links is updated
-  values[i] = links[i/2].val // put val in links itself
-  Also get the frequency 
-  create a copy of links where the elements are reordered
-  */
+  
   if (values[LIT(res)])
   {
     do
     {
       res = links[res].prev;
+      __builtin_prefetch(&links[res],0,0);
       assert(!DISCONNECTED(res));
     } while (values[LIT(res)]);
     kissat_update_queue(solver, links, res);
