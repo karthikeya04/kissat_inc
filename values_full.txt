@@ -1,0 +1,133 @@
+assign.c:24:  values[lit] = 1;
+assign.c:25:  values[not_lit] = -1;
+
+
+backtrack.c:14:  values[lit] = values[not_lit] = 0;
+backtrack.c:92:  value *values = solver->values;
+
+
+compact.c:124:  solver->values[dst_lit] = solver->values[src_lit];
+compact.c:125:  solver->values[not_dst_lit] = solver->values[not_src_lit];
+compact.c:439:  memset(solver->values + 2 * vars, 0, 2 * reduced * sizeof(value));
+
+
+extend.c:28:      values[pos] = 0;
+extend.c:44:  values[pos] = value;
+
+
+
+proplit.h:97:      const value blocking_value = values[blocking];
+proplit.h:112:	      kissat_assign_binary (solver, values, assigned,
+proplit.h:140:	  const value other_value = values[other];
+proplit.h:155:		  replacement_value = values[replacement];
+proplit.h:165:		      replacement_value = values[replacement];
+proplit.h:219:		      kissat_assign_binary (solver, values, assigned,
+proplit.h:232:		    kissat_assign_reference (solver, values,
+proplit.h:239:		  kissat_assign_reference (solver, values,
+queue.c:91:    q->value = solver->values[LIT(i)];
+queue.c:92:    // update values too ??
+queue.c:110:    current->value = solver->values[LIT(i)];
+resize.c:71:  CREALLOC_LITERAL_INDEXED (value, values);
+resize.c:112:  NREALLOC_LITERAL_INDEXED (value, values);
+resolve.c:21:  const value *values = solver->values;
+resolve.c:33:	  const value value = values[other];
+resolve.c:76:		 const value * values, const word * arena,
+resolve.c:83:      assert (!values[other]);
+resolve.c:97:  (void) values;
+resolve.c:117:  const value *values = solver->values;
+resolve.c:124:      clause *c = watch_to_clause (solver, values, arena, &tmp0, lit, watch0);
+resolve.c:137:	    watch_to_clause (solver, values, arena, &tmp1, not_lit, watch1);
+resolve.c:166:	      const value value = values[other];
+resolve.c:194:	      const value value = values[lit];
+sort.c:6:				const value * values,
+sort.c:16:  value u = values[a];
+sort.c:30:	const value v = values[b];
+sort.c:92:		      const value * values, const assigned * assigned,
+sort.c:97:  const value *values = solver->values;
+sort.c:100:  value u = move_smallest_literal_to_front (solver, values, assigned,
+sort.c:103:    move_smallest_literal_to_front (solver, values, assigned,
+substitute.c:269:      value *values = solver->values;
+substitute.c:293:	  const value other_value = values[other];
+substitute.c:423:  const value *values = solver->values;
+substitute.c:441:	  const value lit_value = values[lit];
+substitute.c:455:	  const value repr_value = values[repr_lit];
+substitute.c:472:	      assert (!values[repr_lit]);
+ternary.c:17:  value *values = solver->values;
+ternary.c:25:      if (values[lits[0]])
+ternary.c:27:      if (values[lits[1]])
+ternary.c:29:      if (values[lits[2]])
+transitive.c:18:  value *values = solver->values;
+transitive.c:20:  assert(!values[lit]);
+transitive.c:21:  assert(!values[not_lit]);
+transitive.c:22:  values[lit] = 1;
+transitive.c:23:  values[not_lit] = -1;
+transitive.c:35:  value *values = solver->values;
+transitive.c:41:    assert(values[lit] > 0);
+transitive.c:42:    assert(values[not_lit] < 0);
+transitive.c:43:    values[lit] = values[not_lit] = 0;
+value.h:8:  (solver->values[assert ((LIT) < LITS), (LIT)])
+vivify.c:77:  const value *values = solver->values;
+vivify.c:80:      const value value = values[lit];
+walk.c:192:  value *values = solver->values;
+walk.c:208:      values[lit] = value;
+walk.c:209:      values[not_lit] = -value;
+walk.c:212:        solver->exp_queue[q_idx].value = values[lit];
+walk.c:222:  value *values = solver->values;
+walk.c:238:      const value first_value = values[first];
+walk.c:239:      const value second_value = values[second];
+walk.c:273:  const value *values = solver->values;
+walk.c:311:	  const value value = values[lit];
+walk.c:364:update_values_in_expq(kissat *solver){
+walk.c:368:  value *values = solver->values;
+walk.c:373:    q->value = values[LIT(q->variable_idx)];
+walk.c:389:  walker->saved = solver->values;
+walk.c:390:  solver->values = kissat_calloc (solver, LITS, 1);
+walk.c:392://  update_values_in_expq(solver);
+walk.c:441:  kissat_free (solver, solver->values, LITS);
+walk.c:443:  solver->values = walker->saved;
+walk.c:445:  //update_values_in_expq(solver);
+walk.c:449:break_value (kissat * solver, walker * walker, value * values, unsigned lit)
+walk.c:451:  assert (values[lit] < 0);
+walk.c:468:  (void) values;
+walk.c:495:  value *values = solver->values;
+walk.c:504:      if (!values[lit])
+walk.c:507:      const unsigned breaks = break_value (solver, walker, values, lit);
+walk.c:535:      if (!values[lit])
+walk.c:558:	       const value * values, unsigned flipped)
+walk.c:564:  assert (values[not_flipped] < 0);
+walk.c:589:  (void) values;
+walk.c:595:	      const value * values, unsigned flipped)
+walk.c:597:  assert (values[flipped] > 0);
+walk.c:626:  (void) values;
+walk.c:631:save_all_values (kissat * solver, walker * walker)
+walk.c:635:  LOG ("copying all values as saved phases since trail is invalid");
+walk.c:636:  const value *values = solver->values;
+walk.c:641:      const value value = values[lit];
+walk.c:658:  LOG ("saving %u values of flipped literals on trail of size %u",
+walk.c:663:  const value *values = solver->values;
+walk.c:668:      value value = values[lit];
+walk.c:742:  value *values = solver->values;
+walk.c:743:  const value value = values[flip];
+walk.c:745:  values[flip] = -value;
+walk.c:746:  values[NOT (flip)] = value;
+walk.c:750:    solver->exp_queue[q_idx].value = values[flip];
+walk.c:752:  make_clauses (solver, walker, values, flip);
+walk.c:753:  break_clauses (solver, walker, values, flip);
+walk.c:783:    save_all_values (solver, walker);
+watch.c:65:  const value *values = solver->values;
+watch.c:76:      kissat_sort_literals (solver, values, assigned, c->size, lits);
+watch.c:96:  const value *values = solver->values;
+watch.c:112:	  const value value = values[lit];
+xors.c:46:	       const value * values, unsigned *lits, clause * c)
+xors.c:60:	  assert (!values[other]);
+xors.c:66:	  const value value = values[other];
+xors.c:145:match_lits_ref (kissat * solver, const value * marks, const value * values,
+xors.c:152:      const value value = values[lit];
+xors.c:172:		  const value * marks, const value * values,
+xors.c:187:      return match_lits_ref (solver, marks, values, size, ref);
+xors.c:193:		 const value * marks, const value * values,
+xors.c:200:      if (match_lits_watch (solver, marks, values, size, *p))
+xors.c:253:  const value *values = solver->values;
+xors.c:276:      unsigned size = copy_literals (solver, lit, values, lits, c);
+xors.c:297:					  marks, values, size, &steps);
+xors.c:312:					  marks, values, size, &steps);

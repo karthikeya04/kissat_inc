@@ -207,6 +207,9 @@ import_decision_phases (walker * walker)
       const unsigned not_lit = NOT (lit);
       values[lit] = value;
       values[not_lit] = -value;
+      // unsigned q_idx = solver->links[IDX(lit)].q_idx;
+      // if(!DISCONNECTED(q_idx))
+      //   solver->exp_queue[q_idx].value = values[lit];
       LOG ("copied variable %u decision phase %d", idx, (int) value);
     }
   kissat_phase (solver, "walk", GET (walks), "copied decision phases");
@@ -357,6 +360,19 @@ report_minimum (const char *type, kissat * solver, walker * walker)
 #define report_minimum(...) do { } while (0)
 #endif
 
+// static inline void
+// update_values_in_expq(kissat *solver){
+//   links *links = solver->links;
+//   exp_queue *exp_queue = solver->exp_queue;
+//   struct exp_queue *q;
+//   value *values = solver->values;
+//   queue queue = solver->queue;
+//   for (unsigned qidx = links[queue.first].q_idx; !DISCONNECTED(qidx); qidx = q->next)
+//   {
+//     q = exp_queue + qidx;
+//     q->value = values[LIT(q->variable_idx)];
+//   }
+// }
 static void
 init_walker (kissat * solver, walker * walker, litpairs * binaries)
 {
@@ -372,6 +388,8 @@ init_walker (kissat * solver, walker * walker, litpairs * binaries)
 
   walker->saved = solver->values;
   solver->values = kissat_calloc (solver, LITS, 1);
+
+  //update_values_in_expq(solver);
 
   import_decision_phases (walker);
 
@@ -423,6 +441,8 @@ release_walker (walker * walker)
   kissat_free (solver, solver->values, LITS);
   RELEASE_STACK (walker->unsat);
   solver->values = walker->saved;
+
+  //update_values_in_expq(solver);
 }
 
 static unsigned
@@ -724,6 +744,11 @@ flip_literal (kissat * solver, walker * walker, unsigned flip)
   assert (value < 0);
   values[flip] = -value;
   values[NOT (flip)] = value;
+
+  // unsigned q_idx = solver->links[IDX(flip)].q_idx;
+  // if(!DISCONNECTED(q_idx))
+  //   solver->exp_queue[q_idx].value = values[flip];
+
   make_clauses (solver, walker, values, flip);
   break_clauses (solver, walker, values, flip);
   walker->current = currently_unsatified (walker);

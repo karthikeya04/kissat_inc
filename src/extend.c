@@ -26,6 +26,11 @@ undo_eliminated_assignment (kissat * solver)
       assert (values[pos]);
       LOG2 ("unassigned eliminated[%u] external variable", pos);
       values[pos] = 0;
+
+      // unsigned q_idx = solver->links[IDX(pos)].q_idx;
+      // if(!DISCONNECTED(q_idx)){
+      //   solver->exp_queue[q_idx].value = 0;
+      // }
     }
 }
 
@@ -42,6 +47,12 @@ extend_assign (kissat * solver, value * values, int lit)
   assert (pos < SIZE_STACK (solver->eliminated));
   const value value = lit < 0 ? -1 : 1;
   values[pos] = value;
+
+  // unsigned q_idx = solver->links[IDX(pos)].q_idx;
+  // if(!DISCONNECTED(q_idx)){
+  //   solver->exp_queue[q_idx].value = value;
+  // }
+
   assert (kissat_value (solver, lit) == lit);
   LOG ("assigned eliminated[%u] external literal %d", pos, value * idx);
   PUSH_STACK (solver->etrail, pos);

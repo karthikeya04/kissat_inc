@@ -9,15 +9,26 @@ last_enqueued_unassigned_variable(kissat *solver)
   assert(solver->unassigned);
   const links *links = solver->links;
   const value *values = solver->values;
+  const exp_queue *exp_queue = solver->exp_queue;
   unsigned res = solver->queue.search.idx;
-  
+  unsigned q_idx = links[res].q_idx;
+  struct exp_queue q;
+
   if (values[LIT(res)])
   {
     do
     {
-      res = links[res].prev;
-      __builtin_prefetch(&links[res],0,0);
+//      assert(res == exp_queue[links[res].q_idx].variable_idx);
+      q = exp_queue[q_idx];
+      res = q.variable_idx;
+      q_idx = q.prev;
+      //value v1 = values[LIT(res)], v2 = exp_queue[links[res].q_idx].value;
+      //assert(v1 == v2);
+
       assert(!DISCONNECTED(res));
+      // if(!DISCONNECTED(q_idx))
+      //   __builtin_prefetch(values + LIT(exp_queue[q_idx].variable_idx),0,0);
+      
     } while (values[LIT(res)]);
     kissat_update_queue(solver, links, res);
   }

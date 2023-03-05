@@ -112,6 +112,7 @@ struct kissat
   unsigneds etrail;
 
   links *links;
+  exp_queue *exp_queue;
   queue queue;
 
   rephased rephased;

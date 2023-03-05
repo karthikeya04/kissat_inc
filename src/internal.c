@@ -29,6 +29,7 @@ kissat_init (void)
   kissat_init_profiles (&solver->profiles);
 #endif
   START (total);
+  solver->exp_queue = malloc(1e6 * sizeof(exp_queue));
   kissat_init_queue (&solver->queue);
   kissat_push_frame (solver, INVALID_LIT);
   solver->watching = true;
@@ -97,6 +98,7 @@ kissat_release (kissat * solver)
   DEALLOC_VARIABLE_INDEXED (assigned);
   DEALLOC_VARIABLE_INDEXED (flags);
   DEALLOC_VARIABLE_INDEXED (links);
+  //DEALLOC_VARIABLE_INDEXED (exp_queue);
   DEALLOC_VARIABLE_INDEXED (phases);
 
   DEALLOC_LITERAL_INDEXED (marks);

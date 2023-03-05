@@ -2,7 +2,7 @@
 #include "inline.h"
 #include "require.h"
 #include "resize.h"
-
+#include "queue.h"
 #include <limits.h>
 
 #define NREALLOC_GENERIC(TYPE, NAME, ELEMENTS_PER_BLOCK) \
@@ -56,7 +56,10 @@ kissat_increase_size (kissat * solver, unsigned new_size)
   CREALLOC_VARIABLE_INDEXED (assigned, assigned);
   CREALLOC_VARIABLE_INDEXED (flags, flags);
   NREALLOC_VARIABLE_INDEXED (links, links);
+  //NREALLOC_VARIABLE_INDEXED (exp_queue, exp_queue);
   CREALLOC_VARIABLE_INDEXED (phase, phases);
+  
+
 
   // MAB
   if(solver->heuristic==1 || solver->mab)
@@ -67,6 +70,8 @@ kissat_increase_size (kissat * solver, unsigned new_size)
   CREALLOC_LITERAL_INDEXED (mark, marks);
   CREALLOC_LITERAL_INDEXED (value, values);
   CREALLOC_LITERAL_INDEXED (watches, watches);
+
+  compact_exp_queue(solver,false);
 
   if(solver->heuristic==0 || solver->mab)
      kissat_resize_heap (solver, &solver->scores, new_size);
@@ -80,6 +85,7 @@ kissat_increase_size (kissat * solver, unsigned new_size)
        FORMAT_BYTES (kissat_allocated (solver)), old_size, new_size);
 #endif
 }
+
 
 void
 kissat_decrease_size (kissat * solver)
@@ -95,7 +101,9 @@ kissat_decrease_size (kissat * solver)
   NREALLOC_VARIABLE_INDEXED (assigned, assigned);
   NREALLOC_VARIABLE_INDEXED (flags, flags);
   NREALLOC_VARIABLE_INDEXED (links, links);
+  //NREALLOC_VARIABLE_INDEXED (exp_queue, exp_queue);
   NREALLOC_VARIABLE_INDEXED (phase, phases);
+
   if(solver->heuristic==1 || solver->mab)
      NREALLOC_VARIABLE_INDEXED (unsigned, conflicted_chb);
   if(solver->mab) NREALLOC_VARIABLE_INDEXED (unsigned, mab_chosen);
@@ -103,6 +111,8 @@ kissat_decrease_size (kissat * solver)
   NREALLOC_LITERAL_INDEXED (mark, marks);
   NREALLOC_LITERAL_INDEXED (value, values);
   NREALLOC_LITERAL_INDEXED (watches, watches);
+
+  compact_exp_queue(solver,false);
 
   if(solver->heuristic==0 || solver->mab)
      kissat_resize_heap (solver, &solver->scores, new_size);
