@@ -34,7 +34,7 @@ for cnf_file_cnt in ${!benchmarks[@]}; do
 	
 	perf stat -o perf_optimized_out.log $optimized_kissat_bin_path $cnf_file > optimized_kissat_inc_output.log 
 	exit_code=$?
-	if [[ $exit_code -neq 20 ]]; then echo "$filename.xz,${exit_code// /}" >> "$errors_file"
+	if [[ $exit_code -eq 139 ]]; then echo "$filename.xz,${exit_code// /}" >> "$errors_file"; fi
 
 	temp=$( grep "seconds time elapsed" < perf_optimized_out.log )
 	optimized_time_elapsed="${temp%seconds*}"
