@@ -5,6 +5,8 @@ optimized_kissat_bin_path="selected_solvers/karthikeya-kissat_inc/build/kissat"
 
 benchmark_dir=$1
 out_csv_file=$2
+errors_file="erroneous_combs.csv"
+touch $errors_file
 
 echo
 echo "original kissat_inc binary path: $original_kissat_bin_path"
@@ -30,8 +32,10 @@ for cnf_file_cnt in ${!benchmarks[@]}; do
 	original_time_elapsed="${temp%seconds*}"
 	echo "Original => time elapsed in seconds: ${original_time_elapsed// /}"
 	
-	perf stat -o perf_optimized_out.log $optimized_kissat_bin_path $cnf_file > optimized_kissat_inc_output.log &
-	wait
+	perf stat -o perf_optimized_out.log $optimized_kissat_bin_path $cnf_file > optimized_kissat_inc_output.log 
+	exit_code=$?
+	if [[ $exit_code -neq 20 ]]; then echo "$filename.xz,${exit_code// /}" >> "$errors_file"
+
 	temp=$( grep "seconds time elapsed" < perf_optimized_out.log )
 	optimized_time_elapsed="${temp%seconds*}"
 	echo "Optimized => time elapsed in seconds: ${optimized_time_elapsed// /}"
