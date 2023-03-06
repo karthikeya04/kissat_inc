@@ -32,7 +32,7 @@ struct queue
   {
     unsigned idx, stamp;
   } search;
-  unsigned sz;  // size of exp_queue
+  size_t sz;  // size of exp_queue
 };
 
 void compact_exp_queue(kissat *,bool);

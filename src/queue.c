@@ -65,7 +65,7 @@ void compact_exp_queue(kissat *solver, bool inc_size)
   }
   if (inc_size)
   {
-    unsigned new_size = 2 * sizeof(exp_queue) * solver->queue.sz;
+    size_t new_size = 2 * sizeof(exp_queue) * solver->queue.sz;
     solver->exp_queue = realloc(solver->exp_queue, new_size);
     solver->queue.sz = 2 * solver->queue.sz;
   }
