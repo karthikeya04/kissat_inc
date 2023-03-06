@@ -16,5 +16,8 @@ It takes the benchmarks directory as 1st argument and the output csv file name a
 
 
 The script first runs the `perf` for original kissat_inc binary for a benchmark and then runs the `perf` for optimized kissat_inc binary [commit id: `0c523c6`] for the same benchmark. The binary output is logged into separate files. Also, the perf output is captured in separate files.
-The elapsed time parsed from the `perf` output is saved into the csv file.
+
+
+
+The elapsed time parsed from the `perf` output is saved into the csv file. A timeout of `5000` seconds is kept, beyond which the perf is asked to stop execution.
 
