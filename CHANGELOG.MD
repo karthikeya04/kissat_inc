@@ -1,0 +1,18 @@
+- add prefetch instr in proplit.h
+- Merge branch 'main' of https://github.com/karthikeya04/kissat_inc into main
+- bug fix
+- bug fix
+- fix: do not ignore makefile.in
+- fix: add timeout, log exit code in perf capture script
+- chore: ignore makefile
+- minor update in the script(2)
+- minor update in the script
+- chore: minor changes to readme
+- chore: typo in readme filename
+- feat: add script for perf capture (original vs optimized [0c523c6])
+- kissat+software_pref+layout
+- efficient algorithm
+- add prefetch instruction
+- Add Benchmarks
+- first commit
+- first commit
