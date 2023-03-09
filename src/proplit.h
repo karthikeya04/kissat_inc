@@ -90,17 +90,23 @@ PROPAGATE_LITERAL(kissat *solver,
 	clause *res = 0;
 
 	while (p != end_watches)
-	{
+	{	
 		const watch head = *q++ = *p++;
+
 
 		const unsigned blocking = head.blocking.lit;
 		assert(VALID_INTERNAL_LITERAL(blocking));
 		const value blocking_value = values[blocking];
+
 		if (head.type.binary)
 		{
+			__builtin_prefetch(values + p->blocking.lit, 0, 0);
+			__builtin_prefetch(arena + (p + 1)->raw, 0, 0);
+
 			if (blocking_value > 0)
 				continue;
 			const bool redundant = head.binary.redundant;
+
 			if (blocking_value < 0)
 			{
 				res = kissat_binary_conflict(solver, redundant,
@@ -113,10 +119,15 @@ PROPAGATE_LITERAL(kissat *solver,
 				kissat_assign_binary(solver, values, assigned,
 									 redundant, blocking, not_lit);
 			}
+
 		}
 		else
 		{
+			__builtin_prefetch(values + (p + 1)->blocking.lit, 0, 0);
+			__builtin_prefetch(arena + (p + 2)->raw, 0, 0);
+
 			const watch tail = *q++ = *p++;
+
 			if (blocking_value > 0)
 				continue;
 			const reference ref = tail.raw;
@@ -127,6 +138,7 @@ PROPAGATE_LITERAL(kissat *solver,
 				continue;
 #endif
 			ticks++;
+
 			if (c->garbage)
 			{
 				q -= 2;
