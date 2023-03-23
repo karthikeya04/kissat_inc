@@ -100,8 +100,8 @@ PROPAGATE_LITERAL(kissat *solver,
 
 		if (head.type.binary)
 		{
-			__builtin_prefetch(values + p->blocking.lit, 0, 0);
-			__builtin_prefetch(arena + (p + 1)->raw, 0, 0);
+			// __builtin_prefetch(values + p->blocking.lit, 0, 0);
+			 __builtin_prefetch(arena + (p + 1)->raw, 0, 0);
 
 			if (blocking_value > 0)
 				continue;
@@ -123,7 +123,7 @@ PROPAGATE_LITERAL(kissat *solver,
 		}
 		else
 		{
-			__builtin_prefetch(values + (p + 1)->blocking.lit, 0, 0);
+			// __builtin_prefetch(values + (p + 1)->blocking.lit, 0, 0);
 			__builtin_prefetch(arena + (p + 2)->raw, 0, 0);
 
 			const watch tail = *q++ = *p++;
@@ -191,7 +191,7 @@ PROPAGATE_LITERAL(kissat *solver,
 				}
 				else if (!replacement_value)
 				{
-					assert(replacement != INVALID_LIT);
+					assert(replacemewatches->sizent != INVALID_LIT);
 					LOGREF(ref, "unwatching %s in", LOGLIT(not_lit));
 					q -= 2;
 					lits[0] = other;

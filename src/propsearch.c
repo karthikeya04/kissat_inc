@@ -62,6 +62,7 @@ search_propagate (kissat * solver)
   while (!res && solver->propagated < SIZE_STACK (solver->trail))
     {
       const unsigned lit = PEEK_STACK (solver->trail, solver->propagated);
+      if(solver->propagated + 1 < SIZE_STACK (solver->trail)) __builtin_prefetch(BEGIN_WATCHES(WATCHES(NOT(solver->trail.begin[solver->propagated + 1]))),0,0); // prefetching q for next function call
       res = search_propagate_literal (solver, lit);
       solver->propagated++;
     }

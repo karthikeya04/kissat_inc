@@ -1,0 +1,2 @@
+* Mem bound on solver->queue in kissat_update_queue. It's size is ~16bytes, so probably we can store it in the register(using register keyword)
+* 
