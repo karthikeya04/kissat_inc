@@ -72,6 +72,19 @@ typedef STACK (watch *) patches;
 
 struct kissat
 {
+
+#ifdef SINGLE_LOAD_LATENCY
+  uint64_t latency;
+#endif
+
+#ifdef CYCLES_PER_ITER
+  uint64_t cycles_per_iter;
+  bool prefetch;
+  int64_t cnt1;
+  int64_t cnt2;
+#endif
+
+  
 #ifdef LOGGING
   bool compacting;
 #endif

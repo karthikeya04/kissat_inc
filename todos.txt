@@ -1,0 +1,7 @@
+* Analyse binary-nonbinary block switches 
+* Add another prefetch in par fun for (arena+ref)
+* Heuristic implementation
+* Run them on starexec 
+
+****************************
+Run vtune without c->garbage prefetch 

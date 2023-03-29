@@ -16,6 +16,9 @@
 void
 kissat_statistics_print (kissat * solver, bool verbose)
 {
+#ifdef CYCLES_PER_ITER
+  printf("cnts : %ld %ld\n",solver->cnt1,solver->cnt2);
+#endif
 #ifndef QUIET
   statistics *statistics = &solver->statistics;
 
