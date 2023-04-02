@@ -14,109 +14,105 @@
 #include "proplit.h"
 
 static inline void
-update_search_propagation_statistics (kissat * solver,
-				      unsigned previous_propagated_level)
+update_search_propagation_statistics(kissat *solver,
+                                     unsigned previous_propagated_level)
 {
-  assert (previous_propagated_level <= solver->propagated);
+  assert(previous_propagated_level <= solver->propagated);
   const unsigned propagated = solver->propagated - previous_propagated_level;
 
-  LOG ("propagation took %" PRIu64 " propagations", propagated);
-  LOG ("propagation took %" PRIu64 " ticks", solver->ticks);
+  LOG("propagation took %" PRIu64 " propagations", propagated);
+  LOG("propagation took %" PRIu64 " ticks", solver->ticks);
 
-  ADD (propagations, propagated);
-  ADD (ticks, solver->ticks);
+  ADD(propagations, propagated);
+  ADD(ticks, solver->ticks);
 
-  ADD (search_propagations, propagated);
-  ADD (search_ticks, solver->ticks);
+  ADD(search_propagations, propagated);
+  ADD(search_ticks, solver->ticks);
 
   if (solver->stable)
-    {
-      ADD (stable_propagations, propagated);
-      ADD (stable_ticks, solver->ticks);
-    }
+  {
+    ADD(stable_propagations, propagated);
+    ADD(stable_ticks, solver->ticks);
+  }
   else
-    {
-      ADD (focused_propagations, propagated);
-      ADD (focused_ticks, solver->ticks);
-    }
+  {
+    ADD(focused_propagations, propagated);
+    ADD(focused_ticks, solver->ticks);
+  }
 }
 
 static inline void
-update_consistently_assigned (kissat * solver)
+update_consistently_assigned(kissat *solver)
 {
-  const unsigned assigned = kissat_assigned (solver);
+  const unsigned assigned = kissat_assigned(solver);
   if (assigned != solver->consistently_assigned)
-    {
-      LOG ("updating consistently assigned from %u to %u",
-	   solver->consistently_assigned, assigned);
-      solver->consistently_assigned = assigned;
-    }
+  {
+    LOG("updating consistently assigned from %u to %u",
+        solver->consistently_assigned, assigned);
+    solver->consistently_assigned = assigned;
+  }
   else
-    LOG ("keeping consistently assigned %u", assigned);
+    LOG("keeping consistently assigned %u", assigned);
 }
 
 static clause *
-search_propagate (kissat * solver)
+search_propagate(kissat *solver)
 {
   clause *res = 0;
-  while (!res && solver->propagated < SIZE_STACK (solver->trail))
+  while (!res && solver->propagated < SIZE_STACK(solver->trail))
+  {
+    if (solver->propagated + 1 < SIZE_STACK(solver->trail))
     {
-      const unsigned lit = PEEK_STACK (solver->trail, solver->propagated);
-      if(solver->propagated + 1 < SIZE_STACK (solver->trail)) 
-      {
-        watch *q = BEGIN_WATCHES(WATCHES(NOT(solver->trail.begin[solver->propagated + 1])));
-        __builtin_prefetch(q,0,0); // prefetching q for next function call
-        __builtin_prefetch(BEGIN_STACK(solver->arena) + (q + 1)->raw,0,0);        
-      }
-#ifdef CYCLES_PER_ITER
-      if(solver->cycles_per_iter > 500)
-        solver->prefetch = true;
-      else 
-        solver->prefetch = false;
-        
-      if(solver->prefetch)
-        solver->cnt1++;
-      else  
-        solver->cnt2++;
-#endif
-      res = search_propagate_literal (solver, lit);
-      solver->propagated++;
+      // watch *q = BEGIN_WATCHES(WATCHES(NOT(solver->trail.begin[solver->propagated + 1])));
+      __builtin_prefetch(BEGIN_WATCHES(WATCHES(NOT(solver->trail.begin[solver->propagated + 1]))), 0, 0); // prefetching q for next function call
+      //__builtin_prefetch(BEGIN_STACK(solver->arena) + (q + 1)->raw,0,0);
     }
+#ifdef CYCLES_PER_ITER
+    solver->prefetch = solver->cycles_per_iter > THRESHOLD;
+#ifdef USE_COUNTER 
+      solver->cnt[solver->prefetch]++;
+#endif
+#endif
+
+    const unsigned lit = PEEK_STACK(solver->trail, solver->propagated);
+    res = search_propagate_literal(solver, lit);
+    solver->propagated++;
+  }
   return res;
 }
 
-
-
-
 clause *
-kissat_search_propagate (kissat * solver)
+kissat_search_propagate(kissat *solver)
 {
-  assert (!solver->probing);
-  assert (solver->watching);
-  assert (!solver->inconsistent);
+  assert(!solver->probing);
+  assert(solver->watching);
+  assert(!solver->inconsistent);
 
-  START (propagate);
+  START(propagate);
 
   solver->ticks = 0;
   const unsigned propagated = solver->propagated;
-  clause *conflict = search_propagate (solver);
-  update_search_propagation_statistics (solver, propagated);
-  update_consistently_assigned (solver);
+  clause *conflict = search_propagate(solver);
+  update_search_propagation_statistics(solver, propagated);
+  update_consistently_assigned(solver);
   if (conflict)
-    INC (conflicts);
-  STOP (propagate);
+    INC(conflicts);
+  STOP(propagate);
 
   // CHB
-  if(solver->stable && solver->heuristic==1){
-      int i = SIZE_STACK (solver->trail) - 1;
-      unsigned lit = i>=0?PEEK_STACK (solver->trail, i):0;  
-      while(i>=0 && LEVEL(lit)==solver->level){
-	    lit = PEEK_STACK (solver->trail, i);
-            kissat_bump_chb(solver,IDX(lit), conflict? 1.0 : 0.9); 
-	    i--;	    
-      }
-  }  
-  if(solver->stable && solver->heuristic==1 && conflict) kissat_decay_chb(solver);
+  if (solver->stable && solver->heuristic == 1)
+  {
+    int i = SIZE_STACK(solver->trail) - 1;
+    unsigned lit = i >= 0 ? PEEK_STACK(solver->trail, i) : 0;
+    while (i >= 0 && LEVEL(lit) == solver->level)
+    {
+      lit = PEEK_STACK(solver->trail, i);
+      kissat_bump_chb(solver, IDX(lit), conflict ? 1.0 : 0.9);
+      i--;
+    }
+  }
+  if (solver->stable && solver->heuristic == 1 && conflict)
+    kissat_decay_chb(solver);
 
   return conflict;
 }

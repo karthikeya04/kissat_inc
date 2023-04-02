@@ -60,33 +60,28 @@ kissat_delay_watching_large(kissat *solver, unsigneds *delayed,
 	PUSH_STACK(*delayed, ref);
 }
 
-enum type_rdtsc 
+enum type_rdtsc
 {
-	rdtsc_start,
-	rdtsc_end,
+	rdtsc_fence,
 	nofence
 };
-static inline uint64_t 
+static inline uint64_t
 rdtsc(enum type_rdtsc type)
 {
-	//printf("In rdtsc\n");
- 	unsigned a = 0, d = 0; 
-	if(type == rdtsc_start)
+	unsigned a = 0, d = 0;
+	if (type == rdtsc_fence)
 	{
 		asm volatile("mfence");
-  		asm volatile("rdtsc" : "=a" (a), "=d" (d)); 
+		asm volatile("rdtsc"
+					 : "=a"(a), "=d"(d));
+		asm volatile("mfence");
 	}
-	else if(type == rdtsc_end)
+	else
 	{
-		asm volatile("rdtsc" : "=a" (a), "=d" (d)); 
-  		asm volatile("mfence");
+		asm volatile("rdtsc"
+					 : "=a"(a), "=d"(d));
 	}
-	else 
-	{
-		asm volatile("rdtsc" : "=a" (a), "=d" (d)); 
-	}
-	return ((uint64_t)a) | (((uint64_t)d) << 32);	
-	
+	return ((uint64_t)a) | (((uint64_t)d) << 32);
 }
 
 static inline clause *
@@ -124,14 +119,13 @@ PROPAGATE_LITERAL(kissat *solver,
 #endif
 
 	while (p != end_watches)
-	{	
+	{
 
 #ifdef CYCLES_PER_ITER
-		iter_cnt++;		
+		iter_cnt++;
 #endif
 
 		const watch head = *q++ = *p++;
-
 
 		const unsigned blocking = head.blocking.lit;
 		assert(VALID_INTERNAL_LITERAL(blocking));
@@ -141,15 +135,15 @@ PROPAGATE_LITERAL(kissat *solver,
 		{
 			// __builtin_prefetch(values + p->blocking.lit, 0, 0);
 
-			#ifdef SINGLE_LOAD_LATENCY
-				if(solver->latency > 300)
-					__builtin_prefetch(arena + (p + 1)->raw, 0, 0);
-			#endif
+#ifdef SINGLE_LOAD_LATENCY
+			if (solver->latency > 300)
+				__builtin_prefetch(arena + (p + 1)->raw, 0, 0);
+#endif
 
-			#ifdef CYCLES_PER_ITER
-				if(solver->prefetch)
-			 		__builtin_prefetch(arena + (p + 1)->raw, 0, 0);
-			#endif
+#ifdef CYCLES_PER_ITER
+			if (solver->prefetch)
+				__builtin_prefetch(arena + (p + 1)->raw, 0, 0);
+#endif
 
 			if (blocking_value > 0)
 				continue;
@@ -167,19 +161,18 @@ PROPAGATE_LITERAL(kissat *solver,
 				kissat_assign_binary(solver, values, assigned,
 									 redundant, blocking, not_lit);
 			}
-
 		}
 		else
 		{
 			// __builtin_prefetch(values + (p + 1)->blocking.lit, 0, 0);
 
 #ifdef SINGLE_LOAD_LATENCY
-			if(solver->latency > 300)
+			if (solver->latency > 300)
 				__builtin_prefetch(arena + (p + 2)->raw, 0, 0);
 #endif
 
 #ifdef CYCLES_PER_ITER
-			if(solver->prefetch)
+			if (solver->prefetch)
 				__builtin_prefetch(arena + (p + 2)->raw, 0, 0);
 #endif
 
@@ -195,11 +188,13 @@ PROPAGATE_LITERAL(kissat *solver,
 				continue;
 #endif
 			ticks++;
-			
+
 #ifdef SINGLE_LOAD_LATENCY
-			uint64_t start = rdtsc(rdtsc_start);
+			uint64_t start = rdtsc(rdtsc_fence);
 #endif
-			
+#ifdef CLASSIFY
+			uint64_t start = rdtsc(rdtsc_fence);
+#endif
 			if (c->garbage)
 			{
 				q -= 2;
@@ -207,9 +202,20 @@ PROPAGATE_LITERAL(kissat *solver,
 			}
 
 #ifdef SINGLE_LOAD_LATENCY
-			uint64_t end = rdtsc(rdtsc_end);
+			uint64_t end = rdtsc(rdtsc_fence);
 			uint64_t latency = end - start;
 			solver->latency = latency;
+#endif
+#ifdef CLASSIFY
+			uint64_t end = rdtsc(rdtsc_fence);
+			uint64_t latency = end - start;
+			if(solver->N)
+			{
+				solver->avg_latency = (solver->N*solver->avg_latency + latency)/(solver->N + 1);
+				solver->N += 1;
+			}
+			else solver->N = 1;
+			
 #endif
 
 			unsigned *lits = BEGIN_LITS(c);
@@ -325,8 +331,8 @@ PROPAGATE_LITERAL(kissat *solver,
 	}
 
 #ifdef CYCLES_PER_ITER
-	if(iter_cnt)
-		solver->cycles_per_iter = (rdtsc(nofence)-start)/iter_cnt;
+	if (iter_cnt)
+		solver->cycles_per_iter = (rdtsc(nofence) - start) / iter_cnt;
 #endif
 
 	solver->ticks += ticks;

@@ -3,8 +3,10 @@
 
 #include "internal.h"
 #include "logging.h"
+#define THRESHOLD 80
 
 #ifndef NMETRICS
+
 
 static inline size_t
 kissat_allocated (kissat * solver)

@@ -16,8 +16,11 @@
 void
 kissat_statistics_print (kissat * solver, bool verbose)
 {
-#ifdef CYCLES_PER_ITER
-  printf("cnts : %ld %ld\n",solver->cnt1,solver->cnt2);
+#if defined(CYCLES_PER_ITER) && defined(USE_COUNTER)
+  printf("True : %ld\nFalse : %ld\n",solver->cnt[1],solver->cnt[0]);
+#endif
+#if defined(CLASSIFY)
+  printf("latency %ld %f\n",solver->N,solver->avg_latency);
 #endif
 #ifndef QUIET
   statistics *statistics = &solver->statistics;

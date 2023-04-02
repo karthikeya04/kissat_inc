@@ -55,18 +55,18 @@ typedef struct import import;
 
 struct import
 {
-  unsigned lit:30;
-  bool imported:1;
-  bool eliminated:1;
+  unsigned lit : 30;
+  bool imported : 1;
+  bool eliminated : 1;
 };
 
 // *INDENT-OFF*
 
-typedef STACK (value) eliminated;
-typedef STACK (import) imports;
-typedef STACK (idxrank) idxranks;
-typedef STACK (watch) statches;
-typedef STACK (watch *) patches;
+typedef STACK(value) eliminated;
+typedef STACK(import) imports;
+typedef STACK(idxrank) idxranks;
+typedef STACK(watch) statches;
+typedef STACK(watch *) patches;
 
 // *INDENT-ON*
 
@@ -80,11 +80,17 @@ struct kissat
 #ifdef CYCLES_PER_ITER
   uint64_t cycles_per_iter;
   bool prefetch;
-  int64_t cnt1;
-  int64_t cnt2;
+#ifdef USE_COUNTER
+  int64_t cnt[2];
+#endif
 #endif
 
-  
+#ifdef CLASSIFY
+  float avg_latency;
+  bool high_mem_bound;
+  uint64_t N;
+#endif 
+
 #ifdef LOGGING
   bool compacting;
 #endif
@@ -133,14 +139,14 @@ struct kissat
   heap scores;
   double scinc;
 
-// CHB 
+  // CHB
   heap scores_chb;
   unsigned *conflicted_chb;
   double step_chb;
   double step_dec_chb;
   double step_min_chb;
 
-// MAB
+  // MAB
   unsigned heuristic;
   bool mab;
   double mabc;
@@ -254,26 +260,30 @@ struct kissat
 };
 
 #define VARS (solver->vars)
-#define LITS (2*solver->vars)
+#define LITS (2 * solver->vars)
 
 static inline unsigned
-kissat_assigned (kissat * solver)
+kissat_assigned(kissat *solver)
 {
-  assert (VARS >= solver->unassigned);
+  assert(VARS >= solver->unassigned);
   return VARS - solver->unassigned;
 }
 
-#define all_variables(IDX) \
-  unsigned IDX = 0, IDX_END = solver->vars; IDX != IDX_END; ++IDX
+#define all_variables(IDX)                  \
+  unsigned IDX = 0, IDX_END = solver->vars; \
+  IDX != IDX_END;                           \
+  ++IDX
 
-#define all_literals(LIT) \
-  unsigned LIT = 0, LIT_END = LITS; LIT != LIT_END; ++LIT
+#define all_literals(LIT)           \
+  unsigned LIT = 0, LIT_END = LITS; \
+  LIT != LIT_END;                   \
+  ++LIT
 
-#define all_clauses(C) \
-  clause * C     = (clause*) BEGIN_STACK (solver->arena), \
-         * C_END = (clause*) END_STACK (solver->arena), \
-	 * C_NEXT; \
-  C != C_END && (C_NEXT = kissat_next_clause (C), true); \
+#define all_clauses(C)                                  \
+  clause *C = (clause *)BEGIN_STACK(solver->arena),     \
+         *C_END = (clause *)END_STACK(solver->arena),   \
+         *C_NEXT;                                       \
+  C != C_END && (C_NEXT = kissat_next_clause(C), true); \
   C = C_NEXT
 
 #endif
