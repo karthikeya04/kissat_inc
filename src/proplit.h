@@ -134,7 +134,9 @@ PROPAGATE_LITERAL(kissat *solver,
 		if (head.type.binary)
 		{
 			// __builtin_prefetch(values + p->blocking.lit, 0, 0);
-
+#ifdef PREF_ALL 
+			__builtin_prefetch(arena + (p + 1)->raw, 0, 0);		
+#endif
 #ifdef SINGLE_LOAD_LATENCY
 			if (solver->latency > 300)
 				__builtin_prefetch(arena + (p + 1)->raw, 0, 0);
@@ -165,7 +167,9 @@ PROPAGATE_LITERAL(kissat *solver,
 		else
 		{
 			// __builtin_prefetch(values + (p + 1)->blocking.lit, 0, 0);
-
+#ifdef PREF_ALL 
+			__builtin_prefetch(arena + (p + 2)->raw, 0, 0);		
+#endif
 #ifdef SINGLE_LOAD_LATENCY
 			if (solver->latency > 300)
 				__builtin_prefetch(arena + (p + 2)->raw, 0, 0);
