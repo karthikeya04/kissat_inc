@@ -85,7 +85,12 @@ struct kissat
 #endif
 #endif
 
-#ifdef CLASSIFY
+#ifdef BIN_NBIN_BTRANSITIONS
+  bool bin;
+  bool start;
+  uint64_t change,nochange;
+#endif
+#if defined(CLAUSE_LATENCY) || defined(WATCHLISTS_LATENCY)
   float avg_latency;
   bool high_mem_bound;
   uint64_t N;

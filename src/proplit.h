@@ -117,15 +117,37 @@ PROPAGATE_LITERAL(kissat *solver,
 	int iter_cnt = 0;
 	uint64_t start = rdtsc(nofence);
 #endif
-
+	bool flag = true;
+#ifdef BIN_NBIN_BTRANSITIONS
+	solver->start = true;
+#endif
 	while (p != end_watches)
 	{
-
+		
 #ifdef CYCLES_PER_ITER
 		iter_cnt++;
 #endif
-
+#ifdef WATCHLISTS_LATENCY
+		uint64_t start;
+		if(flag)
+		{
+			start = rdtsc(rdtsc_fence);
+		}
+#endif 
+		
 		const watch head = *q++ = *p++;
+
+#ifdef WATCHLISTS_LATENCY
+		if(flag)
+		{
+			flag = false;
+			uint64_t end = rdtsc(rdtsc_fence);
+			uint64_t latency = end - start;
+			solver->avg_latency = (solver->N*solver->avg_latency + latency)/(solver->N + 1);
+			solver->N+=1;
+		}
+#endif 
+		
 
 		const unsigned blocking = head.blocking.lit;
 		assert(VALID_INTERNAL_LITERAL(blocking));
@@ -133,6 +155,21 @@ PROPAGATE_LITERAL(kissat *solver,
 
 		if (head.type.binary)
 		{
+#ifdef BIN_NBIN_BTRANSITIONS
+			if(solver->start)
+			{
+				solver->start = false;
+			}
+			else if(solver->bin = false)
+			{
+				solver->change++;
+			}
+			else
+			{
+				solver->nochange++;
+			}
+			solver->bin = true;
+#endif
 			// __builtin_prefetch(values + p->blocking.lit, 0, 0);
 #ifdef PREF_ALL 
 			__builtin_prefetch(arena + (p + 1)->raw, 0, 0);		
@@ -166,6 +203,21 @@ PROPAGATE_LITERAL(kissat *solver,
 		}
 		else
 		{
+#ifdef BIN_NBIN_BTRANSITIONS
+			if(solver->start)
+			{
+				solver->start = false;
+			}
+			else if(solver->bin = true)
+			{
+				solver->change++;
+			}
+			else
+			{
+				solver->nochange++;
+			}
+			solver->bin = false;
+#endif
 			// __builtin_prefetch(values + (p + 1)->blocking.lit, 0, 0);
 #ifdef PREF_ALL 
 			__builtin_prefetch(arena + (p + 2)->raw, 0, 0);		
@@ -196,7 +248,7 @@ PROPAGATE_LITERAL(kissat *solver,
 #ifdef SINGLE_LOAD_LATENCY
 			uint64_t start = rdtsc(rdtsc_fence);
 #endif
-#ifdef CLASSIFY
+#ifdef CLAUSE_LATENCY
 			uint64_t start = rdtsc(rdtsc_fence);
 #endif
 			if (c->garbage)
@@ -210,15 +262,11 @@ PROPAGATE_LITERAL(kissat *solver,
 			uint64_t latency = end - start;
 			solver->latency = latency;
 #endif
-#ifdef CLASSIFY
+#ifdef CLAUSE_LATENCY
 			uint64_t end = rdtsc(rdtsc_fence);
 			uint64_t latency = end - start;
-			if(solver->N)
-			{
-				solver->avg_latency = (solver->N*solver->avg_latency + latency)/(solver->N + 1);
-				solver->N += 1;
-			}
-			else solver->N = 1;
+			solver->avg_latency = (solver->N*solver->avg_latency + latency)/(solver->N + 1);
+			solver->N+=1;
 			
 #endif
 

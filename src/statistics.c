@@ -16,10 +16,13 @@
 void
 kissat_statistics_print (kissat * solver, bool verbose)
 {
+#ifdef BIN_NBIN_BTRANSITIONS
+    printf("\nChange : %ld\nNochange : %ld\n",solver->change,solver->nochange);
+#endif
 #if defined(CYCLES_PER_ITER) && defined(USE_COUNTER)
   printf("True : %ld\nFalse : %ld\n",solver->cnt[1],solver->cnt[0]);
 #endif
-#if defined(CLASSIFY)
+#if defined(CLAUSE_LATENCY) || defined(WATCHLISTS_LATENCY)
   printf("latency %ld %f\n",solver->N,solver->avg_latency);
 #endif
 #ifndef QUIET
