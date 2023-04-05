@@ -113,32 +113,20 @@ PROPAGATE_LITERAL(kissat *solver,
 
 	clause *res = 0;
 
-#ifdef CYCLES_PER_ITER
-	int iter_cnt = 0;
-	uint64_t start = rdtsc(nofence);
-#endif
-	bool flag = true;
-#ifdef BIN_NBIN_BTRANSITIONS
-	solver->start = true;
-#endif
+
+	bool flag = (solver->iter_count%100 == 0);
+
 	while (p != end_watches)
 	{
-		
-#ifdef CYCLES_PER_ITER
-		iter_cnt++;
-#endif
-#ifdef WATCHLISTS_LATENCY
 		uint64_t start;
-		if(flag)
+		if(solver->current_phase == 2 && flag)
 		{
 			start = rdtsc(rdtsc_fence);
 		}
-#endif 
 		
 		const watch head = *q++ = *p++;
 
-#ifdef WATCHLISTS_LATENCY
-		if(flag)
+		if(solver->current_phase == 2 && flag)
 		{
 			flag = false;
 			uint64_t end = rdtsc(rdtsc_fence);
@@ -146,7 +134,6 @@ PROPAGATE_LITERAL(kissat *solver,
 			solver->avg_latency = (solver->N*solver->avg_latency + latency)/(solver->N + 1);
 			solver->N+=1;
 		}
-#endif 
 		
 
 		const unsigned blocking = head.blocking.lit;
@@ -155,34 +142,6 @@ PROPAGATE_LITERAL(kissat *solver,
 
 		if (head.type.binary)
 		{
-#ifdef BIN_NBIN_BTRANSITIONS
-			if(solver->start)
-			{
-				solver->start = false;
-			}
-			else if(solver->bin = false)
-			{
-				solver->change++;
-			}
-			else
-			{
-				solver->nochange++;
-			}
-			solver->bin = true;
-#endif
-			// __builtin_prefetch(values + p->blocking.lit, 0, 0);
-#ifdef PREF_ALL 
-			__builtin_prefetch(arena + (p + 1)->raw, 0, 0);		
-#endif
-#ifdef SINGLE_LOAD_LATENCY
-			if (solver->latency > 300)
-				__builtin_prefetch(arena + (p + 1)->raw, 0, 0);
-#endif
-
-#ifdef CYCLES_PER_ITER
-			if (solver->prefetch)
-				__builtin_prefetch(arena + (p + 1)->raw, 0, 0);
-#endif
 
 			if (blocking_value > 0)
 				continue;
@@ -203,34 +162,6 @@ PROPAGATE_LITERAL(kissat *solver,
 		}
 		else
 		{
-#ifdef BIN_NBIN_BTRANSITIONS
-			if(solver->start)
-			{
-				solver->start = false;
-			}
-			else if(solver->bin = true)
-			{
-				solver->change++;
-			}
-			else
-			{
-				solver->nochange++;
-			}
-			solver->bin = false;
-#endif
-			// __builtin_prefetch(values + (p + 1)->blocking.lit, 0, 0);
-#ifdef PREF_ALL 
-			__builtin_prefetch(arena + (p + 2)->raw, 0, 0);		
-#endif
-#ifdef SINGLE_LOAD_LATENCY
-			if (solver->latency > 300)
-				__builtin_prefetch(arena + (p + 2)->raw, 0, 0);
-#endif
-
-#ifdef CYCLES_PER_ITER
-			if (solver->prefetch)
-				__builtin_prefetch(arena + (p + 2)->raw, 0, 0);
-#endif
 
 			const watch tail = *q++ = *p++;
 
@@ -245,30 +176,12 @@ PROPAGATE_LITERAL(kissat *solver,
 #endif
 			ticks++;
 
-#ifdef SINGLE_LOAD_LATENCY
-			uint64_t start = rdtsc(rdtsc_fence);
-#endif
-#ifdef CLAUSE_LATENCY
-			uint64_t start = rdtsc(rdtsc_fence);
-#endif
+
 			if (c->garbage)
 			{
 				q -= 2;
 				continue;
 			}
-
-#ifdef SINGLE_LOAD_LATENCY
-			uint64_t end = rdtsc(rdtsc_fence);
-			uint64_t latency = end - start;
-			solver->latency = latency;
-#endif
-#ifdef CLAUSE_LATENCY
-			uint64_t end = rdtsc(rdtsc_fence);
-			uint64_t latency = end - start;
-			solver->avg_latency = (solver->N*solver->avg_latency + latency)/(solver->N + 1);
-			solver->N+=1;
-			
-#endif
 
 			unsigned *lits = BEGIN_LITS(c);
 			const unsigned other = lits[0] ^ lits[1] ^ not_lit;
@@ -381,11 +294,6 @@ PROPAGATE_LITERAL(kissat *solver,
 			}
 		}
 	}
-
-#ifdef CYCLES_PER_ITER
-	if (iter_cnt)
-		solver->cycles_per_iter = (rdtsc(nofence) - start) / iter_cnt;
-#endif
 
 	solver->ticks += ticks;
 

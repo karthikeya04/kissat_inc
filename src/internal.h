@@ -73,28 +73,17 @@ typedef STACK(watch *) patches;
 struct kissat
 {
 
-#ifdef SINGLE_LOAD_LATENCY
-  uint64_t latency;
-#endif
-
-#ifdef CYCLES_PER_ITER
-  uint64_t cycles_per_iter;
+#ifdef PREF_HEURISTIC
+  clock_t start_time;  
   bool prefetch;
-#ifdef USE_COUNTER
-  int64_t cnt[2];
-#endif
-#endif
-
-#ifdef BIN_NBIN_BTRANSITIONS
-  bool bin;
-  bool start;
-  uint64_t change,nochange;
-#endif
-#if defined(CLAUSE_LATENCY) || defined(WATCHLISTS_LATENCY)
+  int current_phase;
+  uint64_t restarts_snapshot;
+  uint64_t iter_count;
   float avg_latency;
-  bool high_mem_bound;
   uint64_t N;
 #endif 
+
+
 
 #ifdef LOGGING
   bool compacting;
