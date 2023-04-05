@@ -60,6 +60,8 @@ static clause *
 search_propagate(kissat *solver)
 {
   clause *res = 0;
+
+#ifdef PREF_HEURISTIC
   if(solver->current_phase == 0)
   {
     solver->start_time = clock();
@@ -90,13 +92,18 @@ search_propagate(kissat *solver)
         solver->prefetch = true;
     }
   }
-
-
+#endif
 
   while (!res && solver->propagated < SIZE_STACK(solver->trail))
   {
+#ifdef PREF_HEURISTIC
     solver->iter_count++;
-    if (solver->prefetch && solver->propagated + 1 < SIZE_STACK(solver->trail))
+#endif
+    if (
+#ifdef PREF_HEURISTIC 
+    solver->prefetch && 
+#endif 
+    solver->propagated + 1 < SIZE_STACK(solver->trail))
     {
       __builtin_prefetch(BEGIN_WATCHES(WATCHES(NOT(solver->trail.begin[solver->propagated + 1]))), 0, 0); // prefetching q for next function call 
     }

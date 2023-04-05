@@ -433,3 +433,43 @@ c - 388.00 3321 577 71 26653 766821 124532 77% 172 14744428 8076 99%
 c i 394.48 3321 568 71 26659 774733 131178 77% 171 14744428 8075 99%
 c B 400.77 3321 554 71 26660 780360 135855 77% 168 14744428 8075 99%
 c - 410.60 3327 547 72 26661 788423 120699 77% 168 14740797 8075 99%
+c - 435.97 3327 516 73 26675 810323 118803 78% 158 14740797 8075 99%
+c i 436.70 3327 514 73 26675 810894 119270 78% 158 14740797 8074 99%
+c caught signal 15 (SIGTERM)
+c
+c ---- [ profiling ] ---------------------------------------------------------
+c
+c         383.70   87.23 %  search
+c         205.98   46.83 %  focused
+c         177.72   40.40 %  stable
+c          53.05   12.06 %  simplify
+c          35.29    8.02 %  probe
+c          23.97    5.45 %  vivify
+c          19.43    4.42 %  reduce
+c          12.51    2.84 %  walking
+c           4.93    1.12 %  substitute
+c           3.19    0.73 %  autarky
+c           3.16    0.72 %  transitive
+c           3.12    0.71 %  parse
+c           2.34    0.53 %  failed
+c           2.05    0.47 %  eliminate
+c           0.89    0.20 %  ternary
+c =============================================
+c         439.87  100.00 %  total
+c
+c ---- [ statistics ] --------------------------------------------------------
+c
+latency 96780 264.792877
+c conflicts:                           814225             1851.04 per second
+c decisions:                          9599833               11.79 per conflict
+c propagations:                     663341980          1508024    per second
+c reductions:                              73            11154    interval
+c rephased:                                39            20878    interval
+c restarts:                             26675               30.52 interval
+c MAB stats : 74 72 
+c
+c ---- [ resources ] ---------------------------------------------------------
+c
+c maximum-resident-set-size:       3754049536 bytes       3580 MB
+c process-time:                         7m 19s             439.87 seconds
+c raising signal 15 (SIGTERM)

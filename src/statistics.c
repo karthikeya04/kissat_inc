@@ -16,7 +16,9 @@
 void
 kissat_statistics_print (kissat * solver, bool verbose)
 {
+#if defined(PREF_HEURISTIC) && defined(PRINT_LATENCY)
   printf("latency %ld %f\n",solver->N,solver->avg_latency);
+#endif 
 
 #ifndef QUIET
   statistics *statistics = &solver->statistics;

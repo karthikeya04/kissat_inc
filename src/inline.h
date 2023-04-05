@@ -7,7 +7,7 @@
 
 #define PHASE1_TIMEOUT 300
 #define PHASE2_MAXTIME 120
-#define PHASE2_RESTARTS_LIM 1000
+#define PHASE2_RESTARTS_LIM 3000
 #define LATENCY_THRESHOLD_TO_PREF 100 // subject to change after getting experiment results
 
     

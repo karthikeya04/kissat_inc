@@ -113,19 +113,22 @@ PROPAGATE_LITERAL(kissat *solver,
 
 	clause *res = 0;
 
-
+#ifdef PREF_HEURISTIC
 	bool flag = (solver->iter_count%100 == 0);
+#endif 
 
 	while (p != end_watches)
 	{
+#ifdef PREF_HEURISTIC
 		uint64_t start;
 		if(solver->current_phase == 2 && flag)
 		{
 			start = rdtsc(rdtsc_fence);
 		}
-		
+#endif
 		const watch head = *q++ = *p++;
 
+#ifdef PREF_HEURISTIC
 		if(solver->current_phase == 2 && flag)
 		{
 			flag = false;
@@ -134,15 +137,14 @@ PROPAGATE_LITERAL(kissat *solver,
 			solver->avg_latency = (solver->N*solver->avg_latency + latency)/(solver->N + 1);
 			solver->N+=1;
 		}
-		
-
+#endif
 		const unsigned blocking = head.blocking.lit;
 		assert(VALID_INTERNAL_LITERAL(blocking));
 		const value blocking_value = values[blocking];
 
 		if (head.type.binary)
 		{
-
+ 
 			if (blocking_value > 0)
 				continue;
 			const bool redundant = head.binary.redundant;
