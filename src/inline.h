@@ -3,12 +3,11 @@
 
 #include "internal.h"
 #include "logging.h"
-#define THRESHOLD 80 // ignore this 
 
 #define PHASE1_TIMEOUT 300
 #define PHASE2_MAXTIME 120
 #define PHASE2_RESTARTS_LIM 3000
-#define LATENCY_THRESHOLD_TO_PREF 100 // subject to change after getting experiment results
+#define LATENCY_THRESHOLD_TO_PREF 130 // empirically optimal threshold 
 
     
 
