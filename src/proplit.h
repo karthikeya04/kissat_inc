@@ -133,6 +133,9 @@ PROPAGATE_LITERAL(kissat *solver,
 
 		if (head.type.binary)
 		{
+
+			if(p != end_watches && !(p->type.binary))
+				__builtin_prefetch(arena + (p + 1)->raw, 0, 0);
 			// __builtin_prefetch(values + p->blocking.lit, 0, 0);
 
 #ifdef SINGLE_LOAD_LATENCY
@@ -164,6 +167,8 @@ PROPAGATE_LITERAL(kissat *solver,
 		}
 		else
 		{
+			if((p+1) != end_watches && !((p + 1)->type.binary))
+				__builtin_prefetch(arena + (p + 2)->raw, 0, 0);
 			// __builtin_prefetch(values + (p + 1)->blocking.lit, 0, 0);
 
 #ifdef SINGLE_LOAD_LATENCY
