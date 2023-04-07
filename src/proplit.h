@@ -117,29 +117,6 @@ PROPAGATE_LITERAL(kissat *solver,
 	bool flag = (solver->iter_count%100 == 0);
 #endif 
 
-	const size_t watchlist_sz = end_watches - begin_watches;
-	bool clause_type[watchlist_sz]; // false => binary, true => non-binary
-	size_t idx = 0;
-
-	while (q != end_watches)
-	{
-		if(q->type.binary)
-		{
-			q++;
-			clause_type[idx] = false;
-			idx++;
-		}
-		else 
-		{
-			q+=2;
-			clause_type[idx] = true;
-			idx+=2;
-		}
-
-	}
-
-	idx = 0;
-	q = begin_watches;
 	while (p != end_watches)
 	{
 #ifdef PREF_HEURISTIC
@@ -167,9 +144,9 @@ PROPAGATE_LITERAL(kissat *solver,
 
 		if (head.type.binary)
 		{
-			if(idx + 1 < watchlist_sz && clause_type[idx + 1])
+			if(p != end_watches && !(p->type.binary))
 				__builtin_prefetch(arena + (p + 1)->raw, 0, 0);
-			idx++;
+
 			if (blocking_value > 0)
 				continue;
 			const bool redundant = head.binary.redundant;
@@ -189,9 +166,9 @@ PROPAGATE_LITERAL(kissat *solver,
 		}
 		else
 		{
-			if(idx + 2 < watchlist_sz && clause_type[idx + 2])
+			if((p+1) != end_watches && !((p + 1)->type.binary))
 				__builtin_prefetch(arena + (p + 2)->raw, 0, 0);
-			idx+=2;
+
 			const watch tail = *q++ = *p++;
 
 			if (blocking_value > 0)
