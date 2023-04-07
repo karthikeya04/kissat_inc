@@ -129,6 +129,7 @@ dequeue(unsigned i, links *links, queue *queue, exp_queue *exp_queue)
   const unsigned j = l->prev, k = l->next;
   l->prev = l->next = DISCONNECT;
 
+
   unsigned q_idx = l->q_idx;
   l->q_idx = DISCONNECT;
   assert(!DISCONNECTED(q_idx));
