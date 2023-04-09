@@ -3,6 +3,7 @@
 #include "inline.h"
 #include "propsearch.h"
 #include "bump.h"
+#include <time.h>
 
 // Keep this 'inlined' file separate:
 
@@ -59,20 +60,53 @@ static clause *
 search_propagate(kissat *solver)
 {
   clause *res = 0;
+
+#ifdef PREF_HEURISTIC
+  if(solver->current_phase == 0)
+  {
+    solver->start_time = clock();
+    solver->prefetch = true;
+    solver->current_phase = 1;
+    #define PHASE_1
+  }
+  if(solver->current_phase == 1)
+  {
+    if((double)(clock()-solver->start_time) / CLOCKS_PER_SEC > PHASE1_TIMEOUT)
+    {
+      solver->current_phase = 2;
+      solver->prefetch = false;
+      solver->start_time = clock();
+      solver->restarts_snapshot = solver->statistics.restarts;
+    }
+  }
+  if(solver->current_phase == 2)
+  {
+    double timediff = (double)(clock()-solver->start_time) / CLOCKS_PER_SEC;
+    bool crossed_restarts_lim = (solver->statistics.restarts - solver->restarts_snapshot) > PHASE2_RESTARTS_LIM;
+    bool crossed_maxtime = timediff > PHASE2_MAXTIME;
+    if(crossed_restarts_lim || crossed_maxtime)
+    {
+      solver->current_phase = 3;
+      // decide to prefetch or not 
+      if(solver->avg_latency > LATENCY_THRESHOLD_TO_PREF)
+        solver->prefetch = true;
+    }
+  }
+#endif
+
   while (!res && solver->propagated < SIZE_STACK(solver->trail))
   {
-    if (solver->propagated + 1 < SIZE_STACK(solver->trail))
+#ifdef PREF_HEURISTIC
+    solver->iter_count++;
+#endif
+    if (
+#ifdef PREF_HEURISTIC 
+    solver->prefetch && 
+#endif 
+    solver->propagated + 1 < SIZE_STACK(solver->trail))
     {
-      // watch *q = BEGIN_WATCHES(WATCHES(NOT(solver->trail.begin[solver->propagated + 1])));
-      __builtin_prefetch(BEGIN_WATCHES(WATCHES(NOT(solver->trail.begin[solver->propagated + 1]))), 0, 0); // prefetching q for next function call
-      //__builtin_prefetch(BEGIN_STACK(solver->arena) + (q + 1)->raw,0,0);
+      __builtin_prefetch(BEGIN_WATCHES(WATCHES(NOT(solver->trail.begin[solver->propagated + 1]))), 0, 2); // prefetching q for next function call 
     }
-#ifdef CYCLES_PER_ITER
-    solver->prefetch = solver->cycles_per_iter > THRESHOLD;
-#ifdef USE_COUNTER 
-      solver->cnt[solver->prefetch]++;
-#endif
-#endif
 
     const unsigned lit = PEEK_STACK(solver->trail, solver->propagated);
     res = search_propagate_literal(solver, lit);

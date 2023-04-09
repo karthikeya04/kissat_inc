@@ -113,20 +113,31 @@ PROPAGATE_LITERAL(kissat *solver,
 
 	clause *res = 0;
 
-#ifdef CYCLES_PER_ITER
-	int iter_cnt = 0;
-	uint64_t start = rdtsc(nofence);
-#endif
+#ifdef PREF_HEURISTIC
+	bool flag = (solver->iter_count%100 == 0);
+#endif 
 
 	while (p != end_watches)
 	{
-
-#ifdef CYCLES_PER_ITER
-		iter_cnt++;
+#ifdef PREF_HEURISTIC
+		uint64_t start;
+		if(solver->current_phase == 2 && flag)
+		{
+			start = rdtsc(rdtsc_fence);
+		}
 #endif
-
 		const watch head = *q++ = *p++;
 
+#ifdef PREF_HEURISTIC
+		if(solver->current_phase == 2 && flag)
+		{
+			flag = false;
+			uint64_t end = rdtsc(rdtsc_fence);
+			uint64_t latency = end - start;
+			solver->avg_latency = (solver->N*solver->avg_latency + latency)/(solver->N + 1);
+			solver->N+=1;
+		}
+#endif
 		const unsigned blocking = head.blocking.lit;
 		assert(VALID_INTERNAL_LITERAL(blocking));
 		const value blocking_value = values[blocking];
@@ -134,19 +145,6 @@ PROPAGATE_LITERAL(kissat *solver,
 		if (head.type.binary)
 		{
 
-			if(p != end_watches && !(p->type.binary))
-				__builtin_prefetch(arena + (p + 1)->raw, 0, 0);
-			// __builtin_prefetch(values + p->blocking.lit, 0, 0);
-
-#ifdef SINGLE_LOAD_LATENCY
-			if (solver->latency > 300)
-				__builtin_prefetch(arena + (p + 1)->raw, 0, 0);
-#endif
-
-#ifdef CYCLES_PER_ITER
-			if (solver->prefetch)
-				__builtin_prefetch(arena + (p + 1)->raw, 0, 0);
-#endif
 
 			if (blocking_value > 0)
 				continue;
@@ -167,19 +165,6 @@ PROPAGATE_LITERAL(kissat *solver,
 		}
 		else
 		{
-			if((p+1) != end_watches && !((p + 1)->type.binary))
-				__builtin_prefetch(arena + (p + 2)->raw, 0, 0);
-			// __builtin_prefetch(values + (p + 1)->blocking.lit, 0, 0);
-
-#ifdef SINGLE_LOAD_LATENCY
-			if (solver->latency > 300)
-				__builtin_prefetch(arena + (p + 2)->raw, 0, 0);
-#endif
-
-#ifdef CYCLES_PER_ITER
-			if (solver->prefetch)
-				__builtin_prefetch(arena + (p + 2)->raw, 0, 0);
-#endif
 
 			const watch tail = *q++ = *p++;
 
@@ -194,34 +179,12 @@ PROPAGATE_LITERAL(kissat *solver,
 #endif
 			ticks++;
 
-#ifdef SINGLE_LOAD_LATENCY
-			uint64_t start = rdtsc(rdtsc_fence);
-#endif
-#ifdef CLASSIFY
-			uint64_t start = rdtsc(rdtsc_fence);
-#endif
+
 			if (c->garbage)
 			{
 				q -= 2;
 				continue;
 			}
-
-#ifdef SINGLE_LOAD_LATENCY
-			uint64_t end = rdtsc(rdtsc_fence);
-			uint64_t latency = end - start;
-			solver->latency = latency;
-#endif
-#ifdef CLASSIFY
-			uint64_t end = rdtsc(rdtsc_fence);
-			uint64_t latency = end - start;
-			if(solver->N)
-			{
-				solver->avg_latency = (solver->N*solver->avg_latency + latency)/(solver->N + 1);
-				solver->N += 1;
-			}
-			else solver->N = 1;
-			
-#endif
 
 			unsigned *lits = BEGIN_LITS(c);
 			const unsigned other = lits[0] ^ lits[1] ^ not_lit;
@@ -334,11 +297,6 @@ PROPAGATE_LITERAL(kissat *solver,
 			}
 		}
 	}
-
-#ifdef CYCLES_PER_ITER
-	if (iter_cnt)
-		solver->cycles_per_iter = (rdtsc(nofence) - start) / iter_cnt;
-#endif
 
 	solver->ticks += ticks;
 
