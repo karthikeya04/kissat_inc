@@ -61,54 +61,14 @@ search_propagate(kissat *solver)
 {
   clause *res = 0;
 
-#ifdef PREF_HEURISTIC
-  if(solver->current_phase == 0)
-  {
-    solver->start_time = clock();
-    solver->prefetch = true;
-    solver->current_phase = 1;
-    #define PHASE_1
-  }
-  if(solver->current_phase == 1)
-  {
-    if((double)(clock()-solver->start_time) / CLOCKS_PER_SEC > PHASE1_TIMEOUT)
-    {
-      solver->current_phase = 2;
-      solver->prefetch = false;
-      solver->start_time = clock();
-      solver->restarts_snapshot = solver->statistics.restarts;
-    }
-  }
-  if(solver->current_phase == 2)
-  {
-    double timediff = (double)(clock()-solver->start_time) / CLOCKS_PER_SEC;
-    bool crossed_restarts_lim = (solver->statistics.restarts - solver->restarts_snapshot) > PHASE2_RESTARTS_LIM;
-    bool crossed_maxtime = timediff > PHASE2_MAXTIME;
-    if(crossed_restarts_lim || crossed_maxtime)
-    {
-      solver->current_phase = 3;
-      // decide to prefetch or not 
-      if(solver->avg_latency > LATENCY_THRESHOLD_TO_PREF)
-        solver->prefetch = true;
-    }
-  }
-#endif
-
   while (!res && solver->propagated < SIZE_STACK(solver->trail))
   {
-#ifdef PREF_HEURISTIC
-    solver->iter_count++;
-#endif
-    if (
-#ifdef PREF_HEURISTIC 
-    solver->prefetch && 
-#endif 
-    solver->propagated + 1 < SIZE_STACK(solver->trail))
+    if (solver->propagated + 1 < SIZE_STACK(solver->trail))
     {
         const unsigned lit = PEEK_STACK(solver->trail, solver->propagated + 1);
         const unsigned not_lit = NOT(lit);  
         watches *watches = &WATCHES(not_lit);
-        if(watches->size)
+        if(watches->size > 4)
           __builtin_prefetch(BEGIN_WATCHES(*watches), 0, 0); // prefetching q for next function call 
     }
 

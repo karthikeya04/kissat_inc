@@ -73,23 +73,6 @@ typedef STACK(watch *) patches;
 struct kissat
 {
 
-#ifdef PREF_HEURISTIC
-  clock_t start_time;  
-  bool prefetch;
-  int current_phase;
-  uint64_t restarts_snapshot;
-  uint64_t iter_count;
-  float avg_latency;
-  uint64_t N;
-#endif 
-
-#ifdef WL_SZ_DISTRIBUTION
-  uint64_t freq[1000000];
-  uint64_t ge_1e6;
-
-#endif
-
-
 #ifdef LOGGING
   bool compacting;
 #endif

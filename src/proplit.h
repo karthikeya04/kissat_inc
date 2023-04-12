@@ -114,41 +114,13 @@ PROPAGATE_LITERAL(kissat *solver,
 
 	clause *res = 0;
 
-#ifdef WL_SZ_DISTRIBUTION
-	size_t sz = (end_watches - begin_watches);
-	
-	if(sz < 1e6) 
-		solver->freq[sz]++;
-	else 
-		solver->ge_1e6++;
-
-#endif
-
-#ifdef PREF_HEURISTIC
-	bool flag = (solver->iter_count%100 == 0);
-#endif 
 
 	while (p != end_watches)
 	{
-#ifdef PREF_HEURISTIC
-		uint64_t start;
-		if(solver->current_phase == 2 && flag)
-		{
-			start = rdtsc(rdtsc_fence);
-		}
-#endif
+
 		const watch head = *q++ = *p++;
 
-#ifdef PREF_HEURISTIC
-		if(solver->current_phase == 2 && flag)
-		{
-			flag = false;
-			uint64_t end = rdtsc(rdtsc_fence);
-			uint64_t latency = end - start;
-			solver->avg_latency = (solver->N*solver->avg_latency + latency)/(solver->N + 1);
-			solver->N+=1;
-		}
-#endif
+
 		const unsigned blocking = head.blocking.lit;
 		assert(VALID_INTERNAL_LITERAL(blocking));
 		const value blocking_value = values[blocking];
