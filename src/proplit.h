@@ -109,9 +109,20 @@ PROPAGATE_LITERAL(kissat *solver,
 	const watch *end_watches = END_WATCHES(*watches), *p = q;
 	unsigneds *delayed = &solver->delayed;
 
+
 	uint64_t ticks = kissat_cache_lines(watches->size, sizeof(watch));
 
 	clause *res = 0;
+
+#ifdef WL_SZ_DISTRIBUTION
+	size_t sz = (end_watches - begin_watches);
+	
+	if(sz < 1e6) 
+		solver->freq[sz]++;
+	else 
+		solver->ge_1e6++;
+
+#endif
 
 #ifdef PREF_HEURISTIC
 	bool flag = (solver->iter_count%100 == 0);

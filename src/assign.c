@@ -65,12 +65,12 @@ kissat_assign(kissat *solver,
     solver->unflushed++;
   }
 
-  // watches *watches = &WATCHES(not_lit);
-  // if (!watches->size)
-  // {
-  //   watch *w = BEGIN_WATCHES(*watches);
-  //   __builtin_prefetch(w, 0, 1);
-  // }
+  watches *watches = &WATCHES(not_lit);
+  if (!watches->size)
+  {
+    watch *w = BEGIN_WATCHES(*watches);
+    __builtin_prefetch(w, 0, 1);
+  }
 }
 
 static inline unsigned

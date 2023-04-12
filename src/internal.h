@@ -83,6 +83,11 @@ struct kissat
   uint64_t N;
 #endif 
 
+#ifdef WL_SZ_DISTRIBUTION
+  uint64_t freq[1000000];
+  uint64_t ge_1e6;
+
+#endif
 
 
 #ifdef LOGGING

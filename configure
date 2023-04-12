@@ -520,7 +520,7 @@ then
 fi
 [ $embedded = no ] && CFLAGS="$CFLAGS -DNEMBEDDED"
 [ $quiet = no -a $logging = yes ] && CFLAGS="$CFLAGS -DLOGGING"
-[ $check = no ] && CFLAGS="$CFLAGS -DNDEBUG"
+[ $check = no ] && CFLAGS="$CFLAGS -DNDEBUG -DWL_SZ_DISTRIBUTION"
 #[ $check = no ] && CFLAGS="$CFLAGS"
 [ $metrics = no ] && CFLAGS="$CFLAGS -DNMETRICS"
 [ $options = no ] && CFLAGS="$CFLAGS -DNOPTIONS"

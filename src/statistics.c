@@ -20,6 +20,15 @@ kissat_statistics_print (kissat * solver, bool verbose)
   printf("latency %ld %f\n",solver->N,solver->avg_latency);
 #endif 
 
+#ifdef WL_SZ_DISTRIBUTION
+  for(int i = 0;i < 1e6; i++)
+  {
+    if(solver->freq[i])
+      printf("%d,%ld\n",i,solver->freq[i]);
+  }
+  printf("1000000,%ld",solver->ge_1e6);
+#endif
+
 #ifndef QUIET
   statistics *statistics = &solver->statistics;
 

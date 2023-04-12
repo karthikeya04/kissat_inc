@@ -105,7 +105,11 @@ search_propagate(kissat *solver)
 #endif 
     solver->propagated + 1 < SIZE_STACK(solver->trail))
     {
-      __builtin_prefetch(BEGIN_WATCHES(WATCHES(NOT(solver->trail.begin[solver->propagated + 1]))), 0, 2); // prefetching q for next function call 
+        const unsigned lit = PEEK_STACK(solver->trail, solver->propagated + 1);
+        const unsigned not_lit = NOT(lit);  
+        watches *watches = &WATCHES(not_lit);
+        if(watches->size)
+          __builtin_prefetch(BEGIN_WATCHES(*watches)), 0, 1); // prefetching q for next function call 
     }
 
     const unsigned lit = PEEK_STACK(solver->trail, solver->propagated);
