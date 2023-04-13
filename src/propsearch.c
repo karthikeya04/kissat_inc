@@ -100,7 +100,6 @@ search_propagate(kissat *solver)
       solver->iter_count = 0;
       solver->luby_idx = (solver->luby_idx + 1)%solver->luby_limit;
       solver->iter_limit = LUBY_SCALING_FACTOR * solver->luby[solver->luby_idx];
-      printf("INIT : %ld\n",solver->iter_limit);
 
     }
 #endif

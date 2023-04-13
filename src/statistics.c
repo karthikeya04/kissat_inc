@@ -29,7 +29,6 @@ kissat_statistics_print (kissat * solver, bool verbose)
   printf("1000000,%ld",solver->ge_1e6);
 #endif
 
-  printf("%ld %ld\n",solver->iter_count,solver->iter_limit);
 
 
 #ifndef QUIET
