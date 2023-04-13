@@ -72,7 +72,7 @@ end_exploration(kissat *solver)
 {
   solver->exploration = false;
   solver->expl_iter_count = 0;
-  solver->prefetch = (solver->pref_avg_latency - solver->no_pref_avg_latency) < 300;
+  solver->prefetch = (solver->pref_avg_latency - solver->no_pref_avg_latency) < PREFETCH_BIAS;
  
 }
 
@@ -109,11 +109,9 @@ search_propagate(kissat *solver)
         const unsigned lit = PEEK_STACK(solver->trail, solver->propagated + 1);
         const unsigned not_lit = NOT(lit);  
         watches *watches = &WATCHES(not_lit);
-        if(watches->size
 #ifdef HEURISTIC_PREF
-            && solver->prefetch
+        if(solver->prefetch)
 #endif 
-          )
             __builtin_prefetch(BEGIN_WATCHES(*watches), 0, 0); // prefetching q for next function call 
           
     }

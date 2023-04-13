@@ -9,9 +9,10 @@
 // #define PHASE2_RESTARTS_LIM 3000
 // #define LATENCY_THRESHOLD_TO_PREF 130 // empirically optimal threshold 
 
-#define LUBY_SCALING_FACTOR 1e7
+#define LUBY_SCALING_FACTOR 1e10
 #define LUBY_LIMIT 1e6
 #define EXPLORATION_ITER_LIMIT 30
+#define PREFETCH_BIAS 500
 
 
 

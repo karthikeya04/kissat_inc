@@ -127,7 +127,8 @@ PROPAGATE_LITERAL(kissat *solver,
 #endif
 	while (p != end_watches)
 	{
-		iter_count++;
+		if(flag)
+			iter_count++;
 		const watch head = *q++ = *p++;
 
 
