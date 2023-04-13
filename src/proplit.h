@@ -62,14 +62,14 @@ kissat_delay_watching_large(kissat *solver, unsigneds *delayed,
 
 enum type_rdtsc
 {
-	rdtsc_fence,
+	fence,
 	nofence
 };
 static inline uint64_t
 rdtsc(enum type_rdtsc type)
 {
 	unsigned a = 0, d = 0;
-	if (type == rdtsc_fence)
+	if (type == fence)
 	{
 		asm volatile("mfence");
 		asm volatile("rdtsc"
@@ -114,10 +114,20 @@ PROPAGATE_LITERAL(kissat *solver,
 
 	clause *res = 0;
 
-
+#ifdef HEURISTIC_PREF
+	uint64_t iter_count = 0;
+	size_t sz = (end_watches - begin_watches);
+	bool flag = (sz != 0 && solver->exploration && solver->search_prop);
+	uint64_t start,end;
+	if(flag)
+	{
+		solver->expl_iter_count++;
+		start = rdtsc(fence);
+	}
+#endif
 	while (p != end_watches)
 	{
-
+		iter_count++;
 		const watch head = *q++ = *p++;
 
 
@@ -281,6 +291,24 @@ PROPAGATE_LITERAL(kissat *solver,
 		}
 	}
 
+#ifdef HEURISTIC_PREF
+	if(flag)
+	{
+		end = rdtsc(fence);
+		uint64_t latency = (end - start)/iter_count;
+		if(solver->prefetch) 
+		{
+			solver->pref_avg_latency = (solver->pref_avg_latency * solver->prefN + latency)/(solver->prefN + 1);
+			solver->prefN++;
+		}
+		else
+		{
+			solver->no_pref_avg_latency = (solver->no_pref_avg_latency * solver->no_prefN + latency)/(solver->no_prefN + 1); 
+			solver->no_prefN++;
+		}
+		solver->prefetch = !(solver->prefetch);
+	}
+#endif
 	solver->ticks += ticks;
 
 	while (p != end_watches)

@@ -56,26 +56,76 @@ update_consistently_assigned(kissat *solver)
     LOG("keeping consistently assigned %u", assigned);
 }
 
+static inline void 
+init_exploration(kissat *solver)
+{
+  solver->exploration = true;
+  solver->expl_iter_count = 0;
+  solver->pref_avg_latency = 0;
+  solver->no_pref_avg_latency = 0;
+  solver->prefN = 0;
+  solver->no_prefN = 0;
+
+}
+static inline void 
+end_exploration(kissat *solver)
+{
+  solver->exploration = false;
+  solver->expl_iter_count = 0;
+  solver->prefetch = (solver->pref_avg_latency - solver->no_pref_avg_latency) < 200;
+ 
+}
+
 static clause *
 search_propagate(kissat *solver)
 {
-  clause *res = 0;
 
+  clause *res = 0;
+#ifdef HEURISTIC_PREF
+  solver->search_prop = true;
+#endif
   while (!res && solver->propagated < SIZE_STACK(solver->trail))
   {
+
+#ifdef HEURISTIC_PREF
+    solver->iter_count++;
+    if(solver->expl_iter_count == EXPLORATION_ITER_LIMIT)
+    {
+      end_exploration(solver);
+    }
+    if(solver->iter_count == solver->iter_limit)
+    {
+      solver->prefetch = true;
+      init_exploration(solver);
+      solver->iter_count = 0;
+      solver->luby_idx = (solver->luby_idx + 1)%solver->luby_limit;
+      solver->iter_limit = LUBY_SCALING_FACTOR * solver->luby[solver->luby_idx];
+      printf("INIT : %ld\n",solver->iter_limit);
+
+    }
+#endif
+
     if (solver->propagated + 1 < SIZE_STACK(solver->trail))
     {
         const unsigned lit = PEEK_STACK(solver->trail, solver->propagated + 1);
         const unsigned not_lit = NOT(lit);  
         watches *watches = &WATCHES(not_lit);
-        if(watches->size > 4)
-          __builtin_prefetch(BEGIN_WATCHES(*watches), 0, 0); // prefetching q for next function call 
+        if(watches->size
+#ifdef HEURISTIC_PREF
+            && solver->prefetch
+#endif 
+          )
+            __builtin_prefetch(BEGIN_WATCHES(*watches), 0, 0); // prefetching q for next function call 
+          
     }
 
     const unsigned lit = PEEK_STACK(solver->trail, solver->propagated);
     res = search_propagate_literal(solver, lit);
     solver->propagated++;
   }
+#ifdef HEURISTIC_PREF
+  solver->search_prop = false;
+#endif 
   return res;
 }
 

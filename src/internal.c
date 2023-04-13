@@ -16,6 +16,36 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef HEURISTIC_PREF
+uint64_t get_luby(uint64_t* luby,size_t i)
+{
+  if(luby[i]) return luby[i];
+  uint64_t k = 1;
+  while(true)
+  {
+    if(i == k - 1) 
+      return luby[i] = k / 2;
+    if(i >= k/2 && i < k - 1)
+      return luby[i] = get_luby(luby,i - k/2 + 1);
+    k *= 2;
+  }
+
+}
+
+uint64_t* precompute_luby()
+{
+  size_t limit = LUBY_LIMIT;
+  uint64_t *luby = malloc(LUBY_LIMIT * sizeof(uint64_t));
+  luby[0] = 1;
+  luby[1] = 1;
+  for(size_t i = 2; i < limit; i++)
+  {
+    get_luby(luby,i);
+  }
+  return luby;
+}
+#endif
+
 kissat *
 kissat_init (void)
 {
@@ -29,6 +59,14 @@ kissat_init (void)
   kissat_init_profiles (&solver->profiles);
 #endif
   START (total);
+
+#ifdef HEURISTIC_PREF
+  solver->luby_limit = LUBY_LIMIT;
+  solver->luby = precompute_luby();
+  solver->prefetch = true;
+  solver->iter_limit = LUBY_SCALING_FACTOR * solver->luby[0];
+#endif
+  
   solver->exp_queue = malloc(1e6 * sizeof(exp_queue));
   kissat_init_queue (&solver->queue);
   kissat_push_frame (solver, INVALID_LIT);
