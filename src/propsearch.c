@@ -72,7 +72,7 @@ end_exploration(kissat *solver)
 {
   solver->exploration = false;
   solver->expl_iter_count = 0;
-  solver->prefetch = (solver->pref_avg_latency - solver->no_pref_avg_latency) < 200;
+  solver->prefetch = (solver->pref_avg_latency - solver->no_pref_avg_latency) < 300;
  
 }
 
