@@ -3,8 +3,10 @@
 #include "inline.h"
 #include "propsearch.h"
 #include "bump.h"
-#include <time.h>
 
+#ifdef HEURISTIC_PREF
+#include <time.h>
+#endif
 // Keep this 'inlined' file separate:
 
 #include "assign.c"
@@ -60,6 +62,9 @@ static clause *
 search_propagate(kissat *solver)
 {
   clause *res = 0;
+
+#ifdef HEURISTIC_PREF
+
   if(solver->current_phase == 0)
   {
     solver->start_time = clock();
@@ -75,12 +80,15 @@ search_propagate(kissat *solver)
       solver->prefetch = true;
     }
   }
-
-
+#endif
 
   while (!res && solver->propagated < SIZE_STACK(solver->trail))
   {
-    if (solver->prefetch && solver->propagated + 1 < SIZE_STACK(solver->trail))
+    if (
+#ifdef HEURISTIC_PREF
+      solver->prefetch && 
+#endif
+      solver->propagated + 1 < SIZE_STACK(solver->trail))
     {
       __builtin_prefetch(BEGIN_WATCHES(WATCHES(NOT(solver->trail.begin[solver->propagated + 1]))), 0, 0); // prefetching q for next function call 
     }

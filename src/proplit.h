@@ -1,6 +1,8 @@
 #include "inline.h"
-#include <time.h>
 
+#ifdef HEURISTIC_PREF
+#include <time.h>
+#endif
 #ifndef HYPER_PROPAGATION
 
 static inline void
@@ -114,11 +116,15 @@ PROPAGATE_LITERAL(kissat *solver,
 	uint64_t ticks = kissat_cache_lines(watches->size, sizeof(watch));
 
 	clause *res = 0;
+
+#ifdef HEURISTIC_PREF
 	bool phase2 = (solver->current_phase == 2);
+#endif
 
 	while (p != end_watches)
 	{
 
+#ifdef HEURISTIC_PREF
 		if(phase2)
 		{
 			solver->iter_count++;
@@ -143,6 +149,7 @@ PROPAGATE_LITERAL(kissat *solver,
 				}
 			}
 		}
+#endif
 		const watch head = *q++ = *p++;
 
 		const unsigned blocking = head.blocking.lit;
