@@ -16,18 +16,12 @@
 void
 kissat_statistics_print (kissat * solver, bool verbose)
 {
-#if defined(PREF_HEURISTIC) && defined(PRINT_LATENCY)
-  printf("latency %ld %f\n",solver->N,solver->avg_latency);
+#if defined(HEURISTIC_PREF) 
+  printf("pref : %lf\n",solver->pref_clocktime);
+  printf("nopref : %lf\n",solver->nopref_clocktime);
+  printf("Phase : %d\n",solver->current_phase);
+  //printf("latency %ld %f\n",solver->N,solver->avg_latency);
 #endif 
-
-#ifdef WL_SZ_DISTRIBUTION
-  for(int i = 0;i < 1e6; i++)
-  {
-    if(solver->freq[i])
-      printf("%d,%ld\n",i,solver->freq[i]);
-  }
-  printf("1000000,%ld",solver->ge_1e6);
-#endif
 
 
 

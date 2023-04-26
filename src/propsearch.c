@@ -56,73 +56,39 @@ update_consistently_assigned(kissat *solver)
     LOG("keeping consistently assigned %u", assigned);
 }
 
-static inline void 
-init_exploration(kissat *solver)
-{
-  solver->exploration = true;
-  solver->expl_iter_count = 0;
-  solver->pref_avg_latency = 0;
-  solver->no_pref_avg_latency = 0;
-  solver->prefN = 0;
-  solver->no_prefN = 0;
-
-}
-static inline void 
-end_exploration(kissat *solver)
-{
-  solver->exploration = false;
-  solver->expl_iter_count = 0;
-  solver->prefetch = (solver->pref_avg_latency - solver->no_pref_avg_latency) < PREFETCH_BIAS;
- 
-}
-
 static clause *
 search_propagate(kissat *solver)
 {
-
   clause *res = 0;
-#ifdef HEURISTIC_PREF
-  solver->search_prop = true;
-#endif
+  if(solver->current_phase == 0)
+  {
+    solver->start_time = clock();
+    solver->prefetch = true;
+    solver->current_phase = 1;
+  }
+  if(solver->current_phase == 1)
+  {
+    if((double)(clock()-solver->start_time) / CLOCKS_PER_SEC > PHASE1_TIMEOUT)
+    {
+      solver->current_phase = 2;
+      solver->iter_count = 0;
+      solver->prefetch = true;
+    }
+  }
+
+
+
   while (!res && solver->propagated < SIZE_STACK(solver->trail))
   {
-
-#ifdef HEURISTIC_PREF
-    solver->iter_count++;
-    if(solver->expl_iter_count == EXPLORATION_ITER_LIMIT)
+    if (solver->prefetch && solver->propagated + 1 < SIZE_STACK(solver->trail))
     {
-      end_exploration(solver);
-    }
-    if(solver->iter_count == solver->iter_limit)
-    {
-      solver->prefetch = true;
-      init_exploration(solver);
-      solver->iter_count = 0;
-      solver->luby_idx = (solver->luby_idx + 1)%solver->luby_limit;
-      solver->iter_limit = LUBY_SCALING_FACTOR * solver->luby[solver->luby_idx];
-
-    }
-#endif
-
-    if (solver->propagated + 1 < SIZE_STACK(solver->trail))
-    {
-        const unsigned lit = PEEK_STACK(solver->trail, solver->propagated + 1);
-        const unsigned not_lit = NOT(lit);  
-        watches *watches = &WATCHES(not_lit);
-#ifdef HEURISTIC_PREF
-        if(solver->prefetch)
-#endif 
-            __builtin_prefetch(BEGIN_WATCHES(*watches), 0, 0); // prefetching q for next function call 
-          
+      __builtin_prefetch(BEGIN_WATCHES(WATCHES(NOT(solver->trail.begin[solver->propagated + 1]))), 0, 0); // prefetching q for next function call 
     }
 
     const unsigned lit = PEEK_STACK(solver->trail, solver->propagated);
     res = search_propagate_literal(solver, lit);
     solver->propagated++;
   }
-#ifdef HEURISTIC_PREF
-  solver->search_prop = false;
-#endif 
   return res;
 }
 

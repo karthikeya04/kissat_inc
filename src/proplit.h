@@ -1,4 +1,5 @@
 #include "inline.h"
+#include <time.h>
 
 #ifndef HYPER_PROPAGATION
 
@@ -84,6 +85,7 @@ rdtsc(enum type_rdtsc type)
 	return ((uint64_t)a) | (((uint64_t)d) << 32);
 }
 
+
 static inline clause *
 PROPAGATE_LITERAL(kissat *solver,
 #if defined(HYPER_PROPAGATION) || defined(PROBING_PROPAGATION)
@@ -109,28 +111,39 @@ PROPAGATE_LITERAL(kissat *solver,
 	const watch *end_watches = END_WATCHES(*watches), *p = q;
 	unsigneds *delayed = &solver->delayed;
 
-
 	uint64_t ticks = kissat_cache_lines(watches->size, sizeof(watch));
 
 	clause *res = 0;
+	bool phase2 = (solver->current_phase == 2);
 
-#ifdef HEURISTIC_PREF
-	uint64_t iter_count = 0;
-	size_t sz = (end_watches - begin_watches);
-	bool flag = (sz != 0 && solver->exploration && solver->search_prop);
-	uint64_t start,end;
-	if(flag)
-	{
-		solver->expl_iter_count++;
-		start = rdtsc(fence);
-	}
-#endif
 	while (p != end_watches)
 	{
-		if(flag)
-			iter_count++;
-		const watch head = *q++ = *p++;
 
+		if(phase2)
+		{
+			solver->iter_count++;
+			if(solver->iter_count == 1)
+			{
+				solver->start_time = clock();
+			}
+			if(solver->iter_count == ITER_LIMIT)
+			{
+				if(solver->prefetch)
+				{
+					solver->pref_clocktime = (double)(clock()-solver->start_time) / CLOCKS_PER_SEC;
+					solver->iter_count = 0;
+					solver->prefetch = false;
+				}
+				else
+				{
+					solver->nopref_clocktime = (double)(clock()-solver->start_time) / CLOCKS_PER_SEC;
+					solver->current_phase = 3;	
+					// decision 
+					solver->prefetch = (solver->pref_clocktime - solver->nopref_clocktime) < PREFETCH_BIAS;
+				}
+			}
+		}
+		const watch head = *q++ = *p++;
 
 		const unsigned blocking = head.blocking.lit;
 		assert(VALID_INTERNAL_LITERAL(blocking));
@@ -138,7 +151,6 @@ PROPAGATE_LITERAL(kissat *solver,
 
 		if (head.type.binary)
 		{
-
 
 			if (blocking_value > 0)
 				continue;
@@ -159,7 +171,6 @@ PROPAGATE_LITERAL(kissat *solver,
 		}
 		else
 		{
-
 			const watch tail = *q++ = *p++;
 
 			if (blocking_value > 0)
@@ -172,7 +183,6 @@ PROPAGATE_LITERAL(kissat *solver,
 				continue;
 #endif
 			ticks++;
-
 
 			if (c->garbage)
 			{
@@ -227,7 +237,7 @@ PROPAGATE_LITERAL(kissat *solver,
 				}
 				else if (!replacement_value)
 				{
-					assert(replacemewatches->sizent != INVALID_LIT);
+					assert(replacement != INVALID_LIT);
 					LOGREF(ref, "unwatching %s in", LOGLIT(not_lit));
 					q -= 2;
 					lits[0] = other;
@@ -292,24 +302,6 @@ PROPAGATE_LITERAL(kissat *solver,
 		}
 	}
 
-#ifdef HEURISTIC_PREF
-	if(flag)
-	{
-		end = rdtsc(fence);
-		uint64_t latency = (end - start)/iter_count;
-		if(solver->prefetch) 
-		{
-			solver->pref_avg_latency = (solver->pref_avg_latency * solver->prefN + latency)/(solver->prefN + 1);
-			solver->prefN++;
-		}
-		else
-		{
-			solver->no_pref_avg_latency = (solver->no_pref_avg_latency * solver->no_prefN + latency)/(solver->no_prefN + 1); 
-			solver->no_prefN++;
-		}
-		solver->prefetch = !(solver->prefetch);
-	}
-#endif
 	solver->ticks += ticks;
 
 	while (p != end_watches)

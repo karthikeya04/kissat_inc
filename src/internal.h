@@ -74,22 +74,14 @@ struct kissat
 {
 
 #ifdef HEURISTIC_PREF
-  uint64_t* luby;
-  size_t luby_limit;
-  size_t luby_idx;
-
   uint64_t iter_count;
-  uint64_t iter_limit;
-
-  uint64_t expl_iter_count;
-  uint64_t pref_avg_latency;
-  uint64_t prefN;
-  uint64_t no_prefN;
-  uint64_t no_pref_avg_latency;
-  bool exploration; // true if present in exploration phase
-
+  uint64_t iter_count_f5;
+  int current_phase;
   bool prefetch;
-  bool search_prop;
+  clock_t start_time; 
+  uint64_t start; 
+  double pref_clocktime;
+  double nopref_clocktime;
 
 #endif
 

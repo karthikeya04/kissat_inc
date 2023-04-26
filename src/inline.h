@@ -4,19 +4,10 @@
 #include "internal.h"
 #include "logging.h"
 
-// #define PHASE1_TIMEOUT 300
-// #define PHASE2_MAXTIME 120
-// #define PHASE2_RESTARTS_LIM 3000
-// #define LATENCY_THRESHOLD_TO_PREF 130 // empirically optimal threshold 
+#define PHASE1_TIMEOUT 300
+#define ITER_LIMIT 3e9
+#define PREFETCH_BIAS 0
 
-#define LUBY_SCALING_FACTOR 1e10
-#define LUBY_LIMIT 1e6
-#define EXPLORATION_ITER_LIMIT 30
-#define PREFETCH_BIAS 500
-
-
-
-    
 
 #ifndef NMETRICS
 
