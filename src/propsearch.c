@@ -4,9 +4,10 @@
 #include "propsearch.h"
 #include "bump.h"
 
-#ifdef HEURISTIC_PREF
-#include <time.h>
-#endif
+#define PHASE1_ITER_LIMIT 1e7 
+#define PHASE2_ITER_LIMIT 1e6
+#define PREFETCH_BIAS 0
+
 // Keep this 'inlined' file separate:
 
 #include "assign.c"
@@ -65,30 +66,39 @@ search_propagate(kissat *solver)
 
 #ifdef HEURISTIC_PREF
 
-  if(solver->current_phase == 0)
+  if(solver->phase != 3)
+    solver->iter_count++;
+
+  if(solver->phase == 1 && solver->iter_count > PHASE1_ITER_LIMIT)
   {
+    solver->phase = 2;
     solver->start_time = clock();
-    solver->prefetch = true;
-    solver->current_phase = 1;
+    solver->iter_count = 0;
   }
-  if(solver->current_phase == 1)
+
+  if(solver->phase == 2 && solver->iter_count > PHASE2_ITER_LIMIT && solver->prefetch)
   {
-    if((double)(clock()-solver->start_time) / CLOCKS_PER_SEC > PHASE1_TIMEOUT)
-    {
-      solver->current_phase = 2;
-      solver->iter_count = 0;
-      solver->prefetch = true;
-    }
+    solver->prefetch = false;
+    solver->pref_clocktime = (double)(clock()-solver->start_time) / CLOCKS_PER_SEC;
+    solver->start_time = clock();
+    solver->iter_count = 0;
   }
+
+
+  if(solver->phase == 2 && solver->iter_count > PHASE2_ITER_LIMIT && !solver->prefetch)
+  {
+    solver->no_pref_clocktime = (double)(clock()-solver->start_time) / CLOCKS_PER_SEC;
+    // decision
+    solver->prefetch = solver->pref_clocktime - solver->no_pref_clocktime < PREFETCH_BIAS;
+    solver->iter_count = 0;
+    solver->phase = 3;
+  }
+
 #endif
 
   while (!res && solver->propagated < SIZE_STACK(solver->trail))
   {
-    if (
-#ifdef HEURISTIC_PREF
-      solver->prefetch && 
-#endif
-      solver->propagated + 1 < SIZE_STACK(solver->trail))
+    if (solver->prefetch && solver->propagated + 1 < SIZE_STACK(solver->trail))
     {
       __builtin_prefetch(BEGIN_WATCHES(WATCHES(NOT(solver->trail.begin[solver->propagated + 1]))), 0, 0); // prefetching q for next function call 
     }

@@ -32,6 +32,8 @@ kissat_init(void)
 #endif
   START(total);
 
+  solver->prefetch = true;
+  solver->phase = 1;
 
   solver->exp_queue = malloc(1e6 * sizeof(exp_queue));
   kissat_init_queue(&solver->queue);

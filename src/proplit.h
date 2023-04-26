@@ -117,39 +117,8 @@ PROPAGATE_LITERAL(kissat *solver,
 
 	clause *res = 0;
 
-#ifdef HEURISTIC_PREF
-	bool phase2 = (solver->current_phase == 2);
-#endif
-
 	while (p != end_watches)
-	{
-
-#ifdef HEURISTIC_PREF
-		if(phase2)
-		{
-			solver->iter_count++;
-			if(solver->iter_count == 1)
-			{
-				solver->start_time = clock();
-			}
-			if(solver->iter_count == ITER_LIMIT)
-			{
-				if(solver->prefetch)
-				{
-					solver->pref_clocktime = (double)(clock()-solver->start_time) / CLOCKS_PER_SEC;
-					solver->iter_count = 0;
-					solver->prefetch = false;
-				}
-				else
-				{
-					solver->nopref_clocktime = (double)(clock()-solver->start_time) / CLOCKS_PER_SEC;
-					solver->current_phase = 3;	
-					// decision 
-					solver->prefetch = (solver->pref_clocktime - solver->nopref_clocktime) < PREFETCH_BIAS;
-				}
-			}
-		}
-#endif
+	{				
 		const watch head = *q++ = *p++;
 
 		const unsigned blocking = head.blocking.lit;

@@ -73,19 +73,6 @@ typedef STACK(watch *) patches;
 struct kissat
 {
 
-#ifdef HEURISTIC_PREF
-  uint64_t iter_count;
-  uint64_t iter_count_f5;
-  int current_phase;
-  bool prefetch;
-  clock_t start_time; 
-  uint64_t start; 
-  double pref_clocktime;
-  double nopref_clocktime;
-
-#endif
-
-
 
 #ifdef LOGGING
   bool compacting;
@@ -160,6 +147,13 @@ struct kissat
 
   unsigneds trail;
   unsigned propagated;
+
+  uint64_t iter_count;
+  bool prefetch;
+  int phase;
+  clock_t start_time; 
+  double pref_clocktime;
+  double no_pref_clocktime;
 
   unsigned best_assigned;
   unsigned consistently_assigned;

@@ -4,9 +4,6 @@
 #include "internal.h"
 #include "logging.h"
 
-#define PHASE1_TIMEOUT 300
-#define ITER_LIMIT 3e9
-#define PREFETCH_BIAS 0
 
 
 #ifndef NMETRICS

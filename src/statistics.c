@@ -17,9 +17,9 @@ void
 kissat_statistics_print (kissat * solver, bool verbose)
 {
 #if defined(HEURISTIC_PREF) 
+  printf("iter count : %ld\n",solver->iter_count);
   printf("pref : %lf\n",solver->pref_clocktime);
-  printf("nopref : %lf\n",solver->nopref_clocktime);
-  printf("Phase : %d\n",solver->current_phase);
+  printf("nopref : %lf\n",solver->no_pref_clocktime);
   //printf("latency %ld %f\n",solver->N,solver->avg_latency);
 #endif 
 
