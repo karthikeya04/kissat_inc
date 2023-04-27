@@ -15,6 +15,8 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
+
 
 
 
@@ -32,8 +34,12 @@ kissat_init(void)
 #endif
   START(total);
 
+#ifdef HEURISTIC_PREF
   solver->prefetch = true;
   solver->phase = 1;
+#endif
+  time_t t;
+  srand((unsigned) time(&t));
 
   solver->exp_queue = malloc(1e6 * sizeof(exp_queue));
   kissat_init_queue(&solver->queue);

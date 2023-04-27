@@ -148,12 +148,14 @@ struct kissat
   unsigneds trail;
   unsigned propagated;
 
+#ifdef HEURISTIC_PREF
   uint64_t iter_count;
   bool prefetch;
   int phase;
   clock_t start_time; 
   double pref_clocktime;
   double no_pref_clocktime;
+#endif
 
   unsigned best_assigned;
   unsigned consistently_assigned;

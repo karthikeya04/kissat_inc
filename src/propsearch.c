@@ -83,8 +83,6 @@ search_propagate(kissat *solver)
     solver->start_time = clock();
     solver->iter_count = 0;
   }
-
-
   if(solver->phase == 2 && solver->iter_count > PHASE2_ITER_LIMIT && !solver->prefetch)
   {
     solver->no_pref_clocktime = (double)(clock()-solver->start_time) / CLOCKS_PER_SEC;
@@ -93,12 +91,12 @@ search_propagate(kissat *solver)
     solver->iter_count = 0;
     solver->phase = 3;
   }
-
 #endif
 
   while (!res && solver->propagated < SIZE_STACK(solver->trail))
   {
-    if (solver->prefetch && solver->propagated + 1 < SIZE_STACK(solver->trail))
+    float f = (float)rand() / RAND_MAX;
+    if (f < 0.7 && solver->propagated + 1 < SIZE_STACK(solver->trail))
     {
       __builtin_prefetch(BEGIN_WATCHES(WATCHES(NOT(solver->trail.begin[solver->propagated + 1]))), 0, 0); // prefetching q for next function call 
     }
@@ -106,7 +104,9 @@ search_propagate(kissat *solver)
     const unsigned lit = PEEK_STACK(solver->trail, solver->propagated);
     res = search_propagate_literal(solver, lit);
     solver->propagated++;
-  }
+  } 
+
+
   return res;
 }
 
